@@ -4,6 +4,6 @@ import { GeneralCounselingTimesService } from './general-counseling-times.servic
 
 @Module({
   controllers: [GeneralCounselingTimesController],
-  providers: [GeneralCounselingTimesService]
+  providers: [GeneralCounselingTimesService],
 })
 export class GeneralCounselingTimesModule {}
