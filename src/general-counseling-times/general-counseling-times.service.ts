@@ -125,4 +125,36 @@ export class GeneralCounselingTimesService {
     // Return the updated GeneralCounselingTimes object
     return generalCounselingTime;
   }
+
+  updateBooked(
+    id: string,
+    booked: boolean,
+    clock: string,
+  ): GeneralCounselingTimes | null {
+    // Find the counseling time by ID
+    const generalCounselingTime = this.generalCounselingTimes.find(
+      (item) => item.id === id,
+    );
+
+    if (!generalCounselingTime) {
+      console.error(`No GeneralCounselingTimes found with id: ${id}`);
+      return null; // Return null if not found
+    }
+
+    // Find the specific clock
+    const time = generalCounselingTime.time.find(
+      (item) => item.clock === clock,
+    );
+
+    if (!time) {
+      console.error(`No clock found with value: ${clock}`);
+      return null; // Return null if clock not found
+    }
+
+    // Update the active property
+    time.booked = booked;
+
+    // Return the updated GeneralCounselingTimes object
+    return generalCounselingTime;
+  }
 }
