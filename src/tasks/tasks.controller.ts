@@ -6,39 +6,60 @@ import {
   Param,
   Patch,
   Post,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
-import { Task, TaskStatus } from './task.model';
+
 import { CreateTaskDto } from './dto/create-task.dto';
+import { Task } from './task.entity';
+import { TaskStatus } from './task.model';
 
 @Controller('tasks')
 export class TasksController {
-  constructor(private tasksService: TasksService) {}
+  constructor(private readonly tasksService: TasksService) {}
 
+  /**
+   * Get all tasks
+   */
   @Get()
-  getAllTasks() {
+  async getAllTasks(): Promise<Task[]> {
     return this.tasksService.getAllTasks();
   }
+
+  /**
+   * Get a task by ID
+   */
   @Get('/:id')
-  getTaskById(@Param('id') id: string): Task {
+  async getTaskById(@Param('id') id: string): Promise<Task> {
     return this.tasksService.getTaskById(id);
   }
 
+  /**
+   * Create a new task
+   */
   @Post()
-  createTask(@Body() createTaskDto: CreateTaskDto): Task {
+  async createTask(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
     return this.tasksService.createTask(createTaskDto);
   }
 
+  /**
+   * Delete a task by ID
+   */
   @Delete(':id')
-  deleteTask(@Param('id') id: string) {
-    return this.tasksService.deleteTask(id);
+  @HttpCode(HttpStatus.NO_CONTENT) // Return 204 status code for successful deletion
+  async deleteTask(@Param('id') id: string): Promise<void> {
+    await this.tasksService.deleteTask(id);
   }
 
+  /**
+   * Update a task's status
+   */
   @Patch(':id/status')
-  updateTaskStatus(
-    @Body('status') status: TaskStatus,
+  async updateTaskStatus(
     @Param('id') id: string,
-  ): Task {
+    @Body('status') status: TaskStatus,
+  ): Promise<Task> {
     return this.tasksService.updateTaskStatus(id, status);
   }
 }
