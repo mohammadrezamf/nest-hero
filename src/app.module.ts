@@ -5,6 +5,9 @@ import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
+    AuthModule,
+    TasksModule,
+    // GeneralCounselingTimesModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -15,9 +18,6 @@ import { AuthModule } from './auth/auth.module';
       autoLoadEntities: true,
       synchronize: true,
     }),
-    TasksModule,
-    AuthModule,
-    // GeneralCounselingTimesModule,
   ],
 })
 export class AppModule {}

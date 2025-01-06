@@ -1,4 +1,17 @@
+import { IsString, MaxLength, MinLength } from 'class-validator';
+
 export class AuthCredentialDto {
+  @IsString()
+  @MinLength(5, { message: 'Password must be at least 6 characters' })
+  @MaxLength(20, {
+    message: 'username must max length be at least 20 characters',
+  })
   username: string;
+
+  @IsString()
+  @MinLength(5, { message: 'Password must be at least 5 characters' })
+  @MaxLength(20, {
+    message: 'username must max length be at least 20 characters',
+  })
   password: string;
 }

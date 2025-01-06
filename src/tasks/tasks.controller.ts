@@ -6,19 +6,28 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { Task } from './task.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { GetUser } from '../auth/get-user.decorator';
+import { User } from '../auth/user.entity';
 
 @Controller('tasks')
 export class TasksController {
   constructor(private tasksService: TasksService) {}
 
   @Get()
-  getAllTask(@Param() getTasksFilterDro: GetTasksFilterDto) {
+  @UseGuards(AuthGuard('jwt'))
+  getAllTask(
+    @GetUser() user: User,
+    @Param() getTasksFilterDro: GetTasksFilterDto,
+  ) {
+    console.log('user in get all tasks', user);
     return this.tasksService.getTasks(getTasksFilterDro);
   }
 
@@ -28,8 +37,13 @@ export class TasksController {
   }
 
   @Post()
-  createTask(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
-    return this.tasksService.createTask(createTaskDto);
+  @UseGuards(AuthGuard('jwt'))
+  createTask(
+    @Body() createTaskDto: CreateTaskDto,
+    @GetUser() user: User,
+  ): Promise<Task> {
+    console.log('user in create task:', user);
+    return this.tasksService.createTask(createTaskDto, user);
   }
 
   @Delete('/:id')
