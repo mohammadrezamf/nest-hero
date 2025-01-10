@@ -1,6 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Task } from '../tasks/task.entity';
 import { CounselingTimeSlot } from '../general-counseling-times/general.counseling.times.entity';
+import { UserRole } from './dto/auth-credential.dto';
 
 @Entity()
 export class User {
@@ -21,4 +22,11 @@ export class User {
     nullable: true,
   })
   counselingTimeSlots: CounselingTimeSlot[];
+
+  @Column({
+    type: 'enum',
+    enum: UserRole,
+    default: UserRole.USER, // Default role
+  })
+  role: UserRole;
 }

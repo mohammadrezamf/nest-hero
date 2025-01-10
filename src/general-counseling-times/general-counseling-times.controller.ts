@@ -1,7 +1,19 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { GeneralCounselingTimesService } from './general-counseling-times.service';
-import { GeneralCounselingTimes } from './general.counseling.times.entity';
 import { UpdateBookedDto } from './dto/updateBookedDto';
+import { UpdateActiveDto } from './dto/updateActiveDto';
+import { AuthGuard } from '@nestjs/passport';
+import { GetUser } from '../auth/get-user.decorator';
+import { User } from '../auth/user.entity';
 
 @Controller('general-counseling-times')
 export class GeneralCounselingTimesController {
@@ -9,22 +21,7 @@ export class GeneralCounselingTimesController {
     private generalCounselingTimesService: GeneralCounselingTimesService,
   ) {}
 
-  // @Get()
-  // getAllGeneralDay(): Promise<GeneralCounselingTimes[]> {
-  //   return this.generalCounselingTimesService.getAllGeneralDay();
-  // }
-
-  // @Patch(':id/active')
-  // updateActive(
-  //   @Param('id') id: string,
-  //   @Body() updateActiveDto: UpdateActiveDto,
-  // ): GeneralCounselingTimes {
-  //   const { clock, active } = updateActiveDto;
-  //   return this.generalCounselingTimesService.updateActive(id, active, clock);
-  // }
-  //
-
-  @Post('/createday')
+  @Post('/create-day')
   async createWeekdaysAndTimeSlots() {
     return await this.generalCounselingTimesService.createWeekdaysAndTimeSlots();
   }
@@ -32,5 +29,39 @@ export class GeneralCounselingTimesController {
   @Get('all-days')
   async getAllDaysWithTimeSlots() {
     return this.generalCounselingTimesService.getAllDaysWithTimeSlots();
+  }
+
+  @Delete('delete-days')
+  async deleteAllDaysWithTimeSlots() {
+    return await this.generalCounselingTimesService.deleteAllDaysWithTimeSlots();
+  }
+  // ------------ update -booked--------
+  @UseGuards(AuthGuard('jwt'))
+  @Patch(':day/update-book')
+  async updateBooked(
+    @Param('day') day: string,
+    @Body() updateBookedDto: UpdateBookedDto,
+    @GetUser() user: User,
+  ) {
+    return this.generalCounselingTimesService.updateBooked(
+      day,
+      updateBookedDto,
+      user,
+    );
+  }
+
+  // --------------- update--- active ---------
+  @Patch(':day/update-Active')
+  @UseGuards(AuthGuard('jwt'))
+  async updateActiveStatus(
+    @Param('day') day: string,
+    @Body() updateActiveDto: UpdateActiveDto,
+    @GetUser() user: User,
+  ) {
+    return this.generalCounselingTimesService.updateActiveStatus(
+      day,
+      updateActiveDto,
+      user,
+    );
   }
 }
