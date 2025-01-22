@@ -15,6 +15,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { JWTPayload } from './jwt-payload.interface';
+import { CounselingTimeSlot } from '../general-counseling-times/general.counseling.times.entity';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -24,6 +25,8 @@ export class AuthService implements OnModuleInit {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     private jwtService: JwtService,
+    @InjectRepository(CounselingTimeSlot)
+    private counselingTimeSlotRepository: Repository<CounselingTimeSlot>,
   ) {}
 
   async seedAdmin() {
@@ -138,5 +141,21 @@ export class AuthService implements OnModuleInit {
     // Update the target user's role
     targetUser.role = newRole;
     await this.usersRepository.save(targetUser);
+  }
+
+  async getUserAllBookings(userId: string) {
+    // یافتن تمام CounselingTimeSlot هایی که توسط کاربر رزرو شده‌اند
+    const bookedSlots = await this.counselingTimeSlotRepository.find({
+      where: { user: { id: userId }, booked: true },
+      relations: ['generalCounselingTimes'], // لود GeneralCounselingTimes برای دریافت روز و تاریخ
+    });
+
+    // بازگشت رزروها به همراه اطلاعات کامل
+    return bookedSlots.map((slot) => ({
+      id: slot.id,
+      clock: slot.clock, // ساعت رزرو شده
+      day: slot.generalCounselingTimes?.day, // روز رزرو
+      date: slot.generalCounselingTimes?.date, // تاریخ رزرو
+    }));
   }
 }

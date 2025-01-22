@@ -35,6 +35,14 @@ export class GeneralCounselingTimesController {
   async deleteAllDaysWithTimeSlots() {
     return await this.generalCounselingTimesService.deleteAllDaysWithTimeSlots();
   }
+
+  @Get(':slotTimeId/slot-time')
+  async getSlotTimeWithDayAndUser(@Param('slotTimeId') id: string) {
+    return await this.generalCounselingTimesService.getSlotTimeWithDayAndUser(
+      id,
+    );
+  }
+
   // ------------ update -booked--------
   @UseGuards(AuthGuard('jwt'))
   @Patch(':day/update-book')

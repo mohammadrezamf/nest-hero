@@ -45,4 +45,13 @@ export class AuthController {
   ): Promise<void> {
     return this.authService.updateUserRole(adminUser, targetUserId, newRole);
   }
+
+  //   ---get list time that booked of slot for each user
+
+  @Get('/users-bookings')
+  @UseGuards(AuthGuard('jwt'))
+  async getUserAllBooking(@GetUser() user: User) {
+    const { id } = user;
+    return this.authService.getUserAllBookings(id);
+  }
 }
