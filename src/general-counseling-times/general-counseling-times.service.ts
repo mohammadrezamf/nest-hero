@@ -9,11 +9,11 @@ import {
 } from './general.counseling.times.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
+import { addDays, format } from 'date-fns';
 import { UpdateBookedDto } from './dto/updateBookedDto';
-import { UpdateActiveDto } from './dto/updateActiveDto';
 import { User } from '../auth/user.entity';
 import { UserRole } from '../auth/dto/auth-credential.dto';
-import { addDays, format } from 'date-fns';
+import { UpdateActiveDto } from './dto/updateActiveDto';
 
 @Injectable()
 export class GeneralCounselingTimesService {
@@ -82,24 +82,36 @@ export class GeneralCounselingTimesService {
 
   //   ----------------------- GET ALL DAYS  ---------------------------------------------
   async getAllDaysWithTimeSlots() {
-    // ابتدا روزها و تاریخ‌های موجود را از دیتابیس دریافت کن
-    const [data, total] =
-      await this.generalCounselingTimesRepository.findAndCount({
-        relations: ['timeSlots'],
-      });
+    // تاریخ امروز
+    const today = new Date();
 
-    // بررسی وجود تاریخ برای همه روزهای هفته
-    const daysWithoutDates = data.filter((entry) => !entry.date);
+    // محاسبه بازه زمانی: امروز تا ۶ روز آینده
+    const startDate = today;
+    const endDate = addDays(today, 6);
 
-    if (daysWithoutDates.length > 0) {
-      // تولید تاریخ‌های جدید برای روزهایی که تاریخ ندارند
+    // دریافت تمام روزها از دیتابیس
+    const [data] = await this.generalCounselingTimesRepository.findAndCount({
+      relations: ['timeSlots'],
+    });
+
+    // بررسی روزهایی که تاریخ آن‌ها قدیمی است
+    const outdatedDays = data.filter((entry) => new Date(entry.date) < today);
+
+    if (outdatedDays.length > 0) {
+      // تولید تاریخ‌های جدید برای روزهای گذشته
       await this.createNextWeekDays();
     }
 
-    // بازگشت داده‌ها (شامل تاریخ‌های جدید و موجود)
+    // فیلتر کردن روزهای بازه زمانی موردنظر: امروز تا ۶ روز آینده
+    const upcomingDays = data.filter(
+      (entry) =>
+        new Date(entry.date) >= startDate && new Date(entry.date) <= endDate,
+    );
+
+    // بازگرداندن داده‌های بازه زمانی
     return {
-      total,
-      data, // بازگشت اطلاعات همراه با تاریخ
+      total: upcomingDays.length,
+      data: upcomingDays,
     };
   }
 
@@ -115,22 +127,36 @@ export class GeneralCounselingTimesService {
     ];
 
     for (const day of daysOfWeek) {
-      // محاسبه تاریخ هفته‌ی آینده
-      const nextWeekDate = this.getDateForDay(day);
-
-      // بررسی وجود روز با این تاریخ در دیتابیس
-      const existingDay = await this.generalCounselingTimesRepository.findOne({
-        where: { date: nextWeekDate },
+      // پیدا کردن آخرین تاریخ ثبت‌شده برای این روز
+      const latestDay = await this.generalCounselingTimesRepository.findOne({
+        where: { day },
+        order: { date: 'DESC' },
       });
 
-      // اگر روزی با این تاریخ وجود ندارد، آن را ایجاد کن
+      // اگر هیچ تاریخی ثبت نشده باشد، از امروز شروع کن
+      let nextDate = latestDay ? new Date(latestDay.date) : new Date();
+
+      // تولید تاریخ فقط برای روزهایی که بدون تاریخ هستند
+      while (nextDate < new Date()) {
+        nextDate = addDays(nextDate, 7); // هر هفته 7 روز اضافه شود
+      }
+
+      // ایجاد تاریخ جدید فقط برای آینده
+      nextDate = addDays(nextDate, 7); // تاریخ هفته بعد
+
+      // بررسی وجود تاریخ
+      const existingDay = await this.generalCounselingTimesRepository.findOne({
+        where: { date: format(nextDate, 'yyyy-MM-dd') },
+      });
+
       if (!existingDay) {
+        // ایجاد روز جدید
         const newDay = new GeneralCounselingTimes();
         newDay.day = day;
-        newDay.date = nextWeekDate;
+        newDay.date = format(nextDate, 'yyyy-MM-dd');
         await this.generalCounselingTimesRepository.save(newDay);
 
-        // ایجاد اسلات‌های زمانی برای روز جدید
+        // ایجاد تایم‌اسلات‌ها
         const hours = [
           '09:00',
           '10:00',

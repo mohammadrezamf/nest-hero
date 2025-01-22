@@ -9,11 +9,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { GeneralCounselingTimesService } from './general-counseling-times.service';
-import { UpdateBookedDto } from './dto/updateBookedDto';
-import { UpdateActiveDto } from './dto/updateActiveDto';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../auth/get-user.decorator';
 import { User } from '../auth/user.entity';
+import { UpdateActiveDto } from './dto/updateActiveDto';
+import { UpdateBookedDto } from './dto/updateBookedDto';
 
 @Controller('general-counseling-times')
 export class GeneralCounselingTimesController {
