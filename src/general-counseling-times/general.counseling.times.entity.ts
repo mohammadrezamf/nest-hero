@@ -3,13 +3,14 @@ import {
   Entity,
   ManyToOne,
   OneToMany,
+  PrimaryColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '../auth/user.entity';
 
 @Entity()
 export class GeneralCounselingTimes {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn()
   id: string;
 
   @Column()
@@ -27,7 +28,7 @@ export class GeneralCounselingTimes {
 
 @Entity()
 export class CounselingTimeSlot {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn()
   id: string;
 
   @Column()

@@ -15,6 +15,7 @@ import { UpdateActiveDto } from './dto/updateActiveDto';
 import { User } from '../auth/user.entity';
 import { UserRole } from '../auth/dto/auth-credential.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class GeneralCounselingTimesService {
@@ -89,6 +90,7 @@ export class GeneralCounselingTimesService {
       if (!existingDatesSet.has(formattedDate)) {
         // If the date is missing, create it
         const generalCounselingTime = new GeneralCounselingTimes();
+        generalCounselingTime.id = uuidv4();
         generalCounselingTime.day = dayOfWeek;
         generalCounselingTime.date = formattedDate;
 
@@ -96,6 +98,8 @@ export class GeneralCounselingTimesService {
 
         for (const hour of hours) {
           const timeSlot = new CounselingTimeSlot();
+
+          timeSlot.id = uuidv4();
           timeSlot.clock = hour;
           timeSlot.booked = false;
           timeSlot.active = false;
