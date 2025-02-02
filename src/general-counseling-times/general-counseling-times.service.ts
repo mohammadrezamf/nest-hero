@@ -8,7 +8,7 @@ import {
   GeneralCounselingTimes,
 } from './general.counseling.times.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { UpdateBookedDto } from './dto/updateBookedDto';
 import { UpdateActiveDto } from './dto/updateActiveDto';
 import { User } from '../auth/user.entity';
@@ -44,41 +44,112 @@ export class GeneralCounselingTimesService {
       '15:00',
     ];
 
-    const existingDays = await this.generalCounselingTimesRepository.count({
-      where: { day: In(daysOfWeek) },
+    const today = new Date();
+
+    const twoWeeksLater = new Date();
+    twoWeeksLater.setDate(today.getDate() + 14); // Set the range for two weeks
+
+    // Fetch all existing dates within the two-week range
+    const existingDays = await this.generalCounselingTimesRepository.find({
+      where: {
+        date: Between(
+          today.toISOString().split('T')[0],
+          twoWeeksLater.toISOString().split('T')[0],
+        ),
+      },
     });
 
-    if (existingDays > 0) {
-      return {
-        message:
-          'Data already exists in the database, no new days or time slots created',
-      };
-    }
+    // Convert existing dates to a Set for quick lookup
+    const existingDatesSet = new Set(existingDays.map((day) => day.date));
 
-    for (const day of daysOfWeek) {
-      // Calculate the initial date for the day
+    // Iterate through the next 14 days and check if the date already exists
+    for (let i = 0; i < 14; i++) {
+      // Loop for 14 days (2 weeks)
+      const currentDate = new Date(today);
+      currentDate.setDate(today.getDate() + i);
 
-      const generalCounselingTime = new GeneralCounselingTimes();
-      generalCounselingTime.day = day;
+      const dayOfWeek = currentDate
+        .toLocaleString('en-US', { weekday: 'long' })
+        .toLowerCase();
+      if (!daysOfWeek.includes(dayOfWeek)) continue; // Skip invalid days
 
-      await this.generalCounselingTimesRepository.save(generalCounselingTime);
+      const formattedDate = currentDate.toISOString().split('T')[0]; // Store date without time
 
-      for (const hour of hours) {
-        const timeSlot = new CounselingTimeSlot();
-        timeSlot.clock = hour;
-        timeSlot.booked = false;
-        timeSlot.active = true;
-        timeSlot.generalCounselingTimes = generalCounselingTime;
+      if (!existingDatesSet.has(formattedDate)) {
+        // If the date is missing, create it
+        const generalCounselingTime = new GeneralCounselingTimes();
+        generalCounselingTime.day = dayOfWeek;
+        generalCounselingTime.date = formattedDate;
 
-        await this.counselingTimeSlotRepository.save(timeSlot);
+        await this.generalCounselingTimesRepository.save(generalCounselingTime);
+
+        for (const hour of hours) {
+          const timeSlot = new CounselingTimeSlot();
+          timeSlot.clock = hour;
+          timeSlot.booked = false;
+          timeSlot.active = false;
+          timeSlot.generalCounselingTimes = generalCounselingTime;
+
+          await this.counselingTimeSlotRepository.save(timeSlot);
+        }
+
+        // Add newly created date to the Set to prevent further duplicates
+        existingDatesSet.add(formattedDate);
       }
     }
 
-    return { message: 'Days and time slots have been created successfully!' };
+    return { message: 'Days and time slots have been updated successfully!' };
+  }
+
+  // --------------------------------------------------------------------------
+
+  // ------------------------------------------------------------------
+  private getDateForDay(today: Date, targetDay: string): Date {
+    const daysOfWeek = [
+      'saturday',
+      'sunday',
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+    ];
+
+    const todayIndex = daysOfWeek.indexOf(
+      today.toLocaleString('en-US', { weekday: 'long' }).toLowerCase(),
+    );
+    const targetIndex = daysOfWeek.indexOf(targetDay.toLowerCase());
+
+    if (targetIndex === -1) {
+      throw new Error(`Invalid day provided: ${targetDay}`);
+    }
+
+    const daysToAdd =
+      targetIndex >= todayIndex
+        ? targetIndex - todayIndex // Days ahead
+        : 7 - (todayIndex - targetIndex); // Days after next week
+
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + daysToAdd);
+
+    return targetDate;
   }
 
   //   ----------------------- GET ALL DAYS  ---------------------------------------------
-  async getAllDaysWithTimeSlots() {}
+
+  async getAllDaysWithTimeSlots() {
+    // Fetch all GeneralCounselingTimes with their associated time slots
+
+    const [data, total] =
+      await this.generalCounselingTimesRepository.findAndCount({
+        relations: ['timeSlots'], // This will load the related timeSlots for each day
+      });
+    // Return both total and data in the response
+    return {
+      total,
+      data,
+    };
+  }
 
   // ------------------------ DELETE ----------------------------------------
 
