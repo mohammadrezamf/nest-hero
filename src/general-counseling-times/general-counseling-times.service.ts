@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import {
@@ -13,15 +14,24 @@ import { UpdateBookedDto } from './dto/updateBookedDto';
 import { UpdateActiveDto } from './dto/updateActiveDto';
 import { User } from '../auth/user.entity';
 import { UserRole } from '../auth/dto/auth-credential.dto';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class GeneralCounselingTimesService {
+  private readonly logger = new Logger(GeneralCounselingTimesService.name);
   constructor(
     @InjectRepository(GeneralCounselingTimes)
     private generalCounselingTimesRepository: Repository<GeneralCounselingTimes>,
     @InjectRepository(CounselingTimeSlot)
     private counselingTimeSlotRepository: Repository<CounselingTimeSlot>,
   ) {}
+
+  // CRON JOB: Run every hour
+  @Cron(CronExpression.EVERY_HOUR)
+  async handleCron() {
+    this.logger.log('Running createWeekdaysAndTimeSlots Cron Job...');
+    await this.createWeekdaysAndTimeSlots();
+  }
 
   // ----------------- CREATE DAYS AND SLOT ----------------------
   async createWeekdaysAndTimeSlots() {
@@ -102,38 +112,6 @@ export class GeneralCounselingTimesService {
   }
 
   // --------------------------------------------------------------------------
-
-  // ------------------------------------------------------------------
-  private getDateForDay(today: Date, targetDay: string): Date {
-    const daysOfWeek = [
-      'saturday',
-      'sunday',
-      'monday',
-      'tuesday',
-      'wednesday',
-      'thursday',
-      'friday',
-    ];
-
-    const todayIndex = daysOfWeek.indexOf(
-      today.toLocaleString('en-US', { weekday: 'long' }).toLowerCase(),
-    );
-    const targetIndex = daysOfWeek.indexOf(targetDay.toLowerCase());
-
-    if (targetIndex === -1) {
-      throw new Error(`Invalid day provided: ${targetDay}`);
-    }
-
-    const daysToAdd =
-      targetIndex >= todayIndex
-        ? targetIndex - todayIndex // Days ahead
-        : 7 - (todayIndex - targetIndex); // Days after next week
-
-    const targetDate = new Date(today);
-    targetDate.setDate(today.getDate() + daysToAdd);
-
-    return targetDate;
-  }
 
   //   ----------------------- GET ALL DAYS  ---------------------------------------------
 

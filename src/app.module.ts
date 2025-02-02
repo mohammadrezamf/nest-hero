@@ -3,9 +3,11 @@ import { TasksModule } from './tasks/tasks.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { GeneralCounselingTimesModule } from './general-counseling-times/general-counseling-times.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleModule,
     AuthModule,
     TasksModule,
     GeneralCounselingTimesModule,
