@@ -7,7 +7,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
-    ScheduleModule,
+    ScheduleModule.forRoot(),
     AuthModule,
     TasksModule,
     GeneralCounselingTimesModule,

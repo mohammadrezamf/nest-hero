@@ -143,7 +143,7 @@ export class AuthService implements OnModuleInit {
     await this.usersRepository.save(targetUser);
   }
 
-  async getUserAllBookings(userId: string) {
+  async getUserAllGeneralCounselingBookings(userId: string) {
     // یافتن تمام CounselingTimeSlot هایی که توسط کاربر رزرو شده‌اند
     const bookedSlots = await this.counselingTimeSlotRepository.find({
       where: { user: { id: userId }, booked: true },

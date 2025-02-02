@@ -48,10 +48,10 @@ export class AuthController {
 
   //   ---get list time that booked of slot for each user
 
-  @Get('/users-bookings')
+  @Get('/users-general-bookings')
   @UseGuards(AuthGuard('jwt'))
   async getUserAllBooking(@GetUser() user: User) {
     const { id } = user;
-    return this.authService.getUserAllBookings(id);
+    return this.authService.getUserAllGeneralCounselingBookings(id);
   }
 }

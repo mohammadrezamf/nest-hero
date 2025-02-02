@@ -19,6 +19,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 @Injectable()
 export class GeneralCounselingTimesService {
   private readonly logger = new Logger(GeneralCounselingTimesService.name);
+
   constructor(
     @InjectRepository(GeneralCounselingTimes)
     private generalCounselingTimesRepository: Repository<GeneralCounselingTimes>,
@@ -27,9 +28,9 @@ export class GeneralCounselingTimesService {
   ) {}
 
   // CRON JOB: Run every hour
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_HOUR) // Runs every hour
   async handleCron() {
-    this.logger.log('Running createWeekdaysAndTimeSlots Cron Job...');
+    this.logger.log('Executing the scheduled task: createWeekdaysAndTimeSlots');
     await this.createWeekdaysAndTimeSlots();
   }
 
@@ -111,18 +112,26 @@ export class GeneralCounselingTimesService {
     return { message: 'Days and time slots have been updated successfully!' };
   }
 
-  // --------------------------------------------------------------------------
-
   //   ----------------------- GET ALL DAYS  ---------------------------------------------
 
   async getAllDaysWithTimeSlots() {
-    // Fetch all GeneralCounselingTimes with their associated time slots
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const nextWeek = new Date();
+    nextWeek.setDate(today.getDate() + 6); // Fetch for the next 7 days
 
     const [data, total] =
       await this.generalCounselingTimesRepository.findAndCount({
-        relations: ['timeSlots'], // This will load the related timeSlots for each day
+        where: {
+          date: Between(
+            today.toISOString().split('T')[0],
+            nextWeek.toISOString().split('T')[0],
+          ),
+        },
+        relations: ['timeSlots'], // ✅ Ensure time slots are included
       });
-    // Return both total and data in the response
+
     return {
       total,
       data,
