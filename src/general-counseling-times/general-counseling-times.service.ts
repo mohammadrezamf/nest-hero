@@ -14,8 +14,8 @@ import { UpdateBookedDto } from './dto/updateBookedDto';
 import { UpdateActiveDto } from './dto/updateActiveDto';
 import { User } from '../auth/user.entity';
 import { UserRole } from '../auth/dto/auth-credential.dto';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import { v4 as uuidv4 } from 'uuid';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class GeneralCounselingTimesService {
