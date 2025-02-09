@@ -7,7 +7,11 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { AuthCredentialDto, UserRole } from './dto/auth-credential.dto';
+import {
+  AuthCredentialDto,
+  UserLoginRs,
+  UserRole,
+} from './dto/auth-credential.dto';
 import { AuthService } from './auth.service';
 import { User } from './user.entity';
 import { AuthGuard } from '@nestjs/passport';
@@ -17,15 +21,13 @@ import { GetUser } from './get-user.decorator';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post('/signup')
+  @Post('signup')
   signUp(@Body() authCredentialDto: AuthCredentialDto): Promise<void> {
     return this.authService.signUp(authCredentialDto);
   }
 
-  @Post('/signin')
-  signIn(
-    @Body() authCredentialDto: AuthCredentialDto,
-  ): Promise<{ accessToken: string }> {
+  @Post('signin')
+  signIn(@Body() authCredentialDto: AuthCredentialDto): Promise<UserLoginRs> {
     return this.authService.singIN(authCredentialDto);
   }
 
@@ -48,10 +50,17 @@ export class AuthController {
 
   //   ---get list time that booked of slot for each user
 
-  @Get('/users-general-bookings')
+  @Get('users-general-bookings')
   @UseGuards(AuthGuard('jwt'))
   async getUserAllBooking(@GetUser() user: User) {
     const { id } = user;
     return this.authService.getUserAllGeneralCounselingBookings(id);
+  }
+
+  @Get('user-information')
+  @UseGuards(AuthGuard('jwt'))
+  async getUserInformation(@GetUser() user: User) {
+    const { id } = user;
+    return this.authService.getUserInformation(id);
   }
 }

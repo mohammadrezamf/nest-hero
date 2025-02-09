@@ -26,9 +26,9 @@ export class GeneralCounselingTimesController {
     return await this.generalCounselingTimesService.createWeekdaysAndTimeSlots();
   }
 
-  @Get('all-days')
+  @Get('one-week')
   async getAllDaysWithTimeSlots() {
-    return this.generalCounselingTimesService.getAllDaysWithTimeSlots();
+    return this.generalCounselingTimesService.getWeekWithTimeSlots();
   }
 
   @Delete('delete-days')
@@ -45,29 +45,25 @@ export class GeneralCounselingTimesController {
 
   // ------------ update -booked--------
   @UseGuards(AuthGuard('jwt'))
-  @Patch(':day/update-book')
+  @Patch('update-book')
   async updateBooked(
-    @Param('day') day: string,
     @Body() updateBookedDto: UpdateBookedDto,
     @GetUser() user: User,
   ) {
     return this.generalCounselingTimesService.updateBooked(
-      day,
       updateBookedDto,
       user,
     );
   }
 
   // --------------- update--- active ---------
-  @Patch(':day/update-Active')
+  @Patch('update-Active')
   @UseGuards(AuthGuard('jwt'))
   async updateActiveStatus(
-    @Param('day') day: string,
     @Body() updateActiveDto: UpdateActiveDto,
     @GetUser() user: User,
   ) {
     return this.generalCounselingTimesService.updateActiveStatus(
-      day,
       updateActiveDto,
       user,
     );

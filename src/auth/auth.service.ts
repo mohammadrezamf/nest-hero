@@ -9,7 +9,11 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AuthCredentialDto, UserRole } from './dto/auth-credential.dto';
+import {
+  AuthCredentialDto,
+  UserLoginRs,
+  UserRole,
+} from './dto/auth-credential.dto';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -89,15 +93,19 @@ export class AuthService implements OnModuleInit {
     return this.createUser(authCredentialsDto);
   }
 
-  async singIN(
-    authCredentialsDto: AuthCredentialDto,
-  ): Promise<{ accessToken: string }> {
+  async singIN(authCredentialsDto: AuthCredentialDto): Promise<UserLoginRs> {
     const { username, password } = authCredentialsDto;
     const user = await this.usersRepository.findOne({ where: { username } });
     if (user && (await bcrypt.compare(password, user.password))) {
       const payload: JWTPayload = { username };
       const accessToken = await this.jwtService.sign(payload);
-      return { accessToken };
+      return {
+        data: {
+          accessToken,
+          userName: user.username,
+          userRole: user.role,
+        },
+      };
     } else {
       throw new UnauthorizedException();
     }
@@ -157,5 +165,12 @@ export class AuthService implements OnModuleInit {
       day: slot.generalCounselingTimes?.day, // روز رزرو
       date: slot.generalCounselingTimes?.date, // تاریخ رزرو
     }));
+  }
+
+  async getUserInformation(userId: string) {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    return {
+      data: user,
+    };
   }
 }

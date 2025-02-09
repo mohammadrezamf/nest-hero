@@ -118,7 +118,7 @@ export class GeneralCounselingTimesService {
 
   //   ----------------------- GET ALL DAYS  ---------------------------------------------
 
-  async getAllDaysWithTimeSlots() {
+  async getWeekWithTimeSlots() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -127,18 +127,20 @@ export class GeneralCounselingTimesService {
 
     const [data, total] =
       await this.generalCounselingTimesRepository.findAndCount({
-        where: {
-          date: Between(
-            today.toISOString().split('T')[0],
-            nextWeek.toISOString().split('T')[0],
-          ),
-        },
         relations: ['timeSlots'], // ✅ Ensure time slots are included
       });
+    const filteredData = data.filter((item) => {
+      const itemDate = new Date(item.date);
+      return itemDate >= today && itemDate <= nextWeek;
+    });
+
+    filteredData.sort((a, b) => {
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
 
     return {
       total,
-      data,
+      data: filteredData,
     };
   }
 
@@ -205,29 +207,23 @@ export class GeneralCounselingTimesService {
   }
 
   //   ------------------- UPD0ATE BOOKED ---------------------------------------
-  async updateActiveStatus(
-    day: string,
-    updateActiveDto: UpdateActiveDto,
-    user: User,
-  ) {
+  async updateActiveStatus(updateActiveDto: UpdateActiveDto, user: User) {
     try {
       if (user.role === UserRole.USER) {
         return new BadRequestException(
           `You do not have permission to perform this action`,
         );
       }
-      // Find the day with its associated time slots
-      const generalDayFounded = await this.getDayByDay(day);
 
       // Find the specific time slot by its ID
-      const timeSlot = generalDayFounded.timeSlots.find(
-        (item) => item.id === updateActiveDto.timeSlotID,
-      );
+      const timeSlot = await this.counselingTimeSlotRepository.findOne({
+        where: { id: updateActiveDto.timeSlotID },
+      });
 
       if (!timeSlot) {
-        throw new NotFoundException(
-          `Time slot with ID ${updateActiveDto.timeSlotID} was not found.`,
-        );
+        return {
+          message: `Time slot with ID ${updateActiveDto.timeSlotID} was not found.`,
+        };
       }
 
       // Update the active status
@@ -247,24 +243,18 @@ export class GeneralCounselingTimesService {
   }
 
   //   ------------------- UPD0ATE BOOKED ---------------------------------------
-  async updateBooked(
-    day: string,
-    updateBookedDto: UpdateBookedDto,
-    user: User,
-  ) {
+  async updateBooked(updateBookedDto: UpdateBookedDto, user: User) {
     try {
       if (user.role === UserRole.MODERATOR) {
         return new BadRequestException(
           `You do not have permission to perform this action`,
         );
       }
-      // Find the day with its associated time slots
-      const generalDayFounded = await this.getDayByDay(day);
-      console.log('generalDayFounded', generalDayFounded);
+
       // Find the specific time slot by its ID
-      const timeSlot = generalDayFounded.timeSlots.find(
-        (item) => item.id === updateBookedDto.timeSlotID,
-      );
+      const timeSlot = await this.counselingTimeSlotRepository.findOne({
+        where: { id: updateBookedDto.timeSlotID },
+      });
 
       if (!timeSlot) {
         return {

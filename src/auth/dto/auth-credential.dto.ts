@@ -21,3 +21,11 @@ export enum UserRole {
   USER = 'user',
   MODERATOR = 'moderator',
 }
+
+export type UserLoginRs = {
+  data: {
+    accessToken: string;
+    userName: string;
+    userRole: UserRole;
+  };
+};
