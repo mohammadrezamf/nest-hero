@@ -140,6 +140,7 @@ export class GeneralCounselingTimesService {
 
     return {
       total,
+      weekDaysTotal: filteredData.length,
       data: filteredData,
     };
   }
@@ -153,17 +154,6 @@ export class GeneralCounselingTimesService {
     return {
       message: 'All days and time slots have been deleted successfully!',
     };
-  }
-
-  // ---------------find day by id ---------------------------------
-  async getDayByDay(day: string) {
-    const record = await this.generalCounselingTimesRepository.findOne({
-      where: { day },
-    });
-    if (!record) {
-      throw new NotFoundException(`A day with name ${day} was not found.`);
-    }
-    return record;
   }
 
   // ---------- get slot with user and day ----------------

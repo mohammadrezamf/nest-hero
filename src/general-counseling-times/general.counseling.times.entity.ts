@@ -30,7 +30,7 @@ export class CounselingTimeSlot {
   @Column({ default: false })
   booked: boolean;
 
-  @Column({ default: true })
+  @Column({ default: false })
   active: boolean;
 
   @ManyToOne(() => User, (user) => user.counselingTimeSlots, {

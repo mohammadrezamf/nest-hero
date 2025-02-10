@@ -2,6 +2,7 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Task } from '../tasks/task.entity';
 import { CounselingTimeSlot } from '../general-counseling-times/general.counseling.times.entity';
 import { UserRole } from './dto/auth-credential.dto';
+import { FrontEndTimeSlot } from '../front-end-counseling/front-end-counseling-entity';
 
 @Entity()
 export class User {
@@ -14,6 +15,13 @@ export class User {
   @Column()
   password: string;
 
+  @Column({
+    type: 'enum',
+    enum: UserRole,
+    default: UserRole.USER, // Default role
+  })
+  role: UserRole;
+  // ---------------- other tables ---------------
   @OneToMany((_type) => Task, (task) => task.user, { eager: true })
   tasks: Task[];
 
@@ -23,10 +31,9 @@ export class User {
   })
   counselingTimeSlots: CounselingTimeSlot[];
 
-  @Column({
-    type: 'enum',
-    enum: UserRole,
-    default: UserRole.USER, // Default role
+  @OneToMany(() => FrontEndTimeSlot, (slot) => slot.user, {
+    eager: true,
+    nullable: true,
   })
-  role: UserRole;
+  frontEndTimeSlots: FrontEndTimeSlot[];
 }
