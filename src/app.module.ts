@@ -6,6 +6,7 @@ import { GeneralCounselingTimesModule } from './general-counseling-times/general
 import { ScheduleModule } from '@nestjs/schedule';
 import { FrontEndCounselingModule } from './front-end-counseling/front-end-counseling.module';
 import { PsychologyCounselingModule } from './psychology-counseling/psychology-counseling.module';
+import { LegalCounselingModule } from './legal-counseling/legal-counseling.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { PsychologyCounselingModule } from './psychology-counseling/psychology-c
       autoLoadEntities: true,
       synchronize: true,
     }),
+    LegalCounselingModule,
   ],
 })
 export class AppModule {}

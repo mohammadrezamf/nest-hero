@@ -4,6 +4,7 @@ import { CounselingTimeSlot } from '../general-counseling-times/general.counseli
 import { UserRole } from './dto/auth-credential.dto';
 import { FrontEndTimeSlot } from '../front-end-counseling/front-end-counseling-entity';
 import { PsychologyTimeSlot } from '../psychology-counseling/psychoogy-counseling-entity';
+import { LegalTimeSlot } from '../legal-counseling/legal-counseling-entity';
 
 @Entity()
 export class User {
@@ -43,4 +44,10 @@ export class User {
     nullable: true,
   })
   psychologyTimeSlot: PsychologyTimeSlot[];
+
+  @OneToMany(() => LegalTimeSlot, (slot) => slot.user, {
+    eager: true,
+    nullable: true,
+  })
+  legalTimeSlot: LegalTimeSlot[];
 }
