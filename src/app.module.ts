@@ -5,8 +5,6 @@ import { AuthModule } from './auth/auth.module';
 import { GeneralCounselingTimesModule } from './general-counseling-times/general-counseling-times.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { FrontEndCounselingModule } from './front-end-counseling/front-end-counseling.module';
-import { PsychologyCounselingService } from './psychology-counseling/psychology-counseling.service';
-import { PsychologyCounselingController } from './psychology-counseling/psychology-counseling.controller';
 import { PsychologyCounselingModule } from './psychology-counseling/psychology-counseling.module';
 
 @Module({
@@ -15,6 +13,8 @@ import { PsychologyCounselingModule } from './psychology-counseling/psychology-c
     AuthModule,
     TasksModule,
     GeneralCounselingTimesModule,
+    FrontEndCounselingModule,
+    PsychologyCounselingModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -25,10 +25,6 @@ import { PsychologyCounselingModule } from './psychology-counseling/psychology-c
       autoLoadEntities: true,
       synchronize: true,
     }),
-    FrontEndCounselingModule,
-    PsychologyCounselingModule,
   ],
-  providers: [PsychologyCounselingService],
-  controllers: [PsychologyCounselingController],
 })
 export class AppModule {}

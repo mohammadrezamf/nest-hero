@@ -11,10 +11,6 @@ import {
 } from './front-end-counseling-entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import {
-  CounselingTimeSlot,
-  GeneralCounselingTimes,
-} from '../general-counseling-times/general.counseling.times.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { UpdateActiveDto } from '../general-counseling-times/dto/updateActiveDto';
 import { User } from '../auth/user.entity';
@@ -91,23 +87,23 @@ export class FrontEndCounselingService {
 
       if (!existingDatesSet.has(formattedDate)) {
         // If the date is missing, create it
-        const generalCounselingTime = new GeneralCounselingTimes();
-        generalCounselingTime.id = uuidv4();
-        generalCounselingTime.day = dayOfWeek;
-        generalCounselingTime.date = formattedDate;
+        const frontEndCounselingTime = new FrontEndCounselingTimes();
+        frontEndCounselingTime.id = uuidv4();
+        frontEndCounselingTime.day = dayOfWeek;
+        frontEndCounselingTime.date = formattedDate;
 
         await this.frontEndCounselingTimesRepository.save(
-          generalCounselingTime,
+          frontEndCounselingTime,
         );
 
         for (const hour of hours) {
-          const timeSlot = new CounselingTimeSlot();
+          const timeSlot = new FrontEndTimeSlot();
 
           timeSlot.id = uuidv4();
           timeSlot.clock = hour;
           timeSlot.booked = false;
           timeSlot.active = false;
-          timeSlot.generalCounselingTimes = generalCounselingTime;
+          timeSlot.frontEndCounselingTimes = frontEndCounselingTime;
 
           await this.frontEndTimeSlotRepository.save(timeSlot);
         }
