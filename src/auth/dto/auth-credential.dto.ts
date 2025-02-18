@@ -19,13 +19,15 @@ export class AuthCredentialDto {
 export enum UserRole {
   ADMIN = 'admin',
   USER = 'user',
-  MODERATOR = 'moderator',
+  GENERAL = 'general',
+  FRONT_END = 'frontEnd',
+  PSYCHOLOGY = 'psychology',
+  LEGAL = 'legal',
 }
 
 export type UserLoginRs = {
-  data: {
-    accessToken: string;
-    userName: string;
-    userRole: UserRole;
-  };
+  accessToken: string;
+  userName: string;
+  userRole: UserRole;
+  id: string;
 };

@@ -100,11 +100,10 @@ export class AuthService implements OnModuleInit {
       const payload: JWTPayload = { username };
       const accessToken = await this.jwtService.sign(payload);
       return {
-        data: {
-          accessToken,
-          userName: user.username,
-          userRole: user.role,
-        },
+        accessToken,
+        userName: user.username,
+        userRole: user.role,
+        id: user.id,
       };
     } else {
       throw new UnauthorizedException();
@@ -159,12 +158,16 @@ export class AuthService implements OnModuleInit {
     });
 
     // بازگشت رزروها به همراه اطلاعات کامل
-    return bookedSlots.map((slot) => ({
+    const data = bookedSlots.map((slot) => ({
       id: slot.id,
       clock: slot.clock, // ساعت رزرو شده
       day: slot.generalCounselingTimes?.day, // روز رزرو
       date: slot.generalCounselingTimes?.date, // تاریخ رزرو
     }));
+
+    return {
+      data: data,
+    };
   }
 
   async getUserInformation(userId: string) {

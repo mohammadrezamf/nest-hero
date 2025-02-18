@@ -235,7 +235,7 @@ export class GeneralCounselingTimesService {
   //   ------------------- UPD0ATE BOOKED ---------------------------------------
   async updateBooked(updateBookedDto: UpdateBookedDto, user: User) {
     try {
-      if (user.role === UserRole.MODERATOR) {
+      if (user.role === UserRole.GENERAL) {
         return new BadRequestException(
           `You do not have permission to perform this action`,
         );
