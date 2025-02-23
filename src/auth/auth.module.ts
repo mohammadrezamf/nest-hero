@@ -7,6 +7,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { CounselingTimeSlot } from '../general-counseling-times/general.counseling.times.entity';
+import { FrontEndTimeSlot } from '../front-end-counseling/front-end-counseling-entity';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { CounselingTimeSlot } from '../general-counseling-times/general.counseli
       secret: 'topSecret51',
       signOptions: { expiresIn: '17361907396' },
     }),
-    TypeOrmModule.forFeature([User, CounselingTimeSlot]),
+    TypeOrmModule.forFeature([User, CounselingTimeSlot, FrontEndTimeSlot]),
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController],

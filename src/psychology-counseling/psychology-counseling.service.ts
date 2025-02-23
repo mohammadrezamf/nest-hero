@@ -93,6 +93,7 @@ export class PsychologyCounselingService {
         psychologyCounselingTime.id = uuidv4();
         psychologyCounselingTime.day = dayOfWeek;
         psychologyCounselingTime.date = formattedDate;
+        psychologyCounselingTime.category = 'psychology';
 
         await this.psychologyCounselingTimesRepository.save(
           psychologyCounselingTime,

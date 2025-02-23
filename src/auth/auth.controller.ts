@@ -54,7 +54,7 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   async getUserAllBooking(@GetUser() user: User) {
     const { id } = user;
-    return this.authService.getUserAllGeneralCounselingBookings(id);
+    return this.authService.getUserAllCounselingBookings(id);
   }
 
   @Get('user-information')

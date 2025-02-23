@@ -93,6 +93,7 @@ export class GeneralCounselingTimesService {
         generalCounselingTime.id = uuidv4();
         generalCounselingTime.day = dayOfWeek;
         generalCounselingTime.date = formattedDate;
+        generalCounselingTime.category='general'
 
         await this.generalCounselingTimesRepository.save(generalCounselingTime);
 

@@ -12,6 +12,9 @@ export class FrontEndCounselingTimes {
   @Column({ type: 'date', nullable: false })
   date: string;
 
+  @Column()
+  category: string;
+
   @OneToMany(() => FrontEndTimeSlot, (slot) => slot.frontEndCounselingTimes, {
     eager: true,
     cascade: true,

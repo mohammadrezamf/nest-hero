@@ -20,6 +20,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { JWTPayload } from './jwt-payload.interface';
 import { CounselingTimeSlot } from '../general-counseling-times/general.counseling.times.entity';
+import { FrontEndTimeSlot } from '../front-end-counseling/front-end-counseling-entity';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -31,6 +32,8 @@ export class AuthService implements OnModuleInit {
     private jwtService: JwtService,
     @InjectRepository(CounselingTimeSlot)
     private counselingTimeSlotRepository: Repository<CounselingTimeSlot>,
+    @InjectRepository(FrontEndTimeSlot)
+    private frontEndTimeSlotRepository: Repository<FrontEndTimeSlot>,
   ) {}
 
   async seedAdmin() {
@@ -150,23 +153,40 @@ export class AuthService implements OnModuleInit {
     await this.usersRepository.save(targetUser);
   }
 
-  async getUserAllGeneralCounselingBookings(userId: string) {
-    // یافتن تمام CounselingTimeSlot هایی که توسط کاربر رزرو شده‌اند
-    const bookedSlots = await this.counselingTimeSlotRepository.find({
+  async getUserAllCounselingBookings(userId: string) {
+    // Fetch all General Counseling Booked Slots
+    const bookedGeneralSlots = await this.counselingTimeSlotRepository.find({
       where: { user: { id: userId }, booked: true },
-      relations: ['generalCounselingTimes'], // لود GeneralCounselingTimes برای دریافت روز و تاریخ
+      relations: ['generalCounselingTimes'],
     });
 
-    // بازگشت رزروها به همراه اطلاعات کامل
-    const data = bookedSlots.map((slot) => ({
+    // Fetch all FrontEnd Counseling Booked Slots
+    const bookedFrontEndSlots = await this.frontEndTimeSlotRepository.find({
+      where: { user: { id: userId }, booked: true },
+      relations: ['frontEndCounselingTimes'],
+    });
+
+    // Transform General Counseling Data
+    const generalData = bookedGeneralSlots.map((slot) => ({
       id: slot.id,
-      clock: slot.clock, // ساعت رزرو شده
-      day: slot.generalCounselingTimes?.day, // روز رزرو
-      date: slot.generalCounselingTimes?.date, // تاریخ رزرو
+      category: 'general', // Indicate it's from General Counseling
+      clock: slot.clock,
+      day: slot.generalCounselingTimes?.day,
+      date: slot.generalCounselingTimes?.date,
     }));
 
+    // Transform FrontEnd Counseling Data
+    const frontEndData = bookedFrontEndSlots.map((slot) => ({
+      id: slot.id,
+      category: 'frontend', // Indicate it's from FrontEnd Counseling
+      clock: slot.clock,
+      day: slot.frontEndCounselingTimes?.day,
+      date: slot.frontEndCounselingTimes?.date,
+    }));
+
+    // Combine both lists and return
     return {
-      data: data,
+      data: [...generalData, ...frontEndData],
     };
   }
 

@@ -12,6 +12,9 @@ export class GeneralCounselingTimes {
   @Column({ type: 'date', nullable: false }) // Add this field
   date: string;
 
+  @Column()
+  category: string;
+
   @OneToMany(() => CounselingTimeSlot, (slot) => slot.generalCounselingTimes, {
     eager: true,
     cascade: true,
