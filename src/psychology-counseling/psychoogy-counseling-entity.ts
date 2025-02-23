@@ -12,9 +12,6 @@ export class PsychologyCounselingTimes {
   @Column({ type: 'date', nullable: false })
   date: string;
 
-  @Column()
-  category: string;
-
   @OneToMany(
     () => PsychologyTimeSlot,
     (slot) => slot.psychologyCounselingTimes,

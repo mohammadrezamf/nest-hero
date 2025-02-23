@@ -91,7 +91,6 @@ export class FrontEndCounselingService {
         frontEndCounselingTime.id = uuidv4();
         frontEndCounselingTime.day = dayOfWeek;
         frontEndCounselingTime.date = formattedDate;
-        frontEndCounselingTime.category = 'frontEnd';
 
         await this.frontEndCounselingTimesRepository.save(
           frontEndCounselingTime,

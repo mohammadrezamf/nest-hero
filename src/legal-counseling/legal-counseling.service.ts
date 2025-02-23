@@ -90,7 +90,6 @@ export class LegalCounselingService {
         legalCounselingTime.id = uuidv4();
         legalCounselingTime.day = dayOfWeek;
         legalCounselingTime.date = formattedDate;
-        legalCounselingTime.category = 'legal';
 
         await this.legalCounselingTimesRepository.save(legalCounselingTime);
 
