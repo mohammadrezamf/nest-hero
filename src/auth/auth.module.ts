@@ -8,6 +8,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { CounselingTimeSlot } from '../general-counseling-times/general.counseling.times.entity';
 import { FrontEndTimeSlot } from '../front-end-counseling/front-end-counseling-entity';
+import { PsychologyTimeSlot } from '../psychology-counseling/psychoogy-counseling-entity';
+import { LegalTimeSlot } from '../legal-counseling/legal-counseling-entity';
 
 @Module({
   imports: [
@@ -16,7 +18,13 @@ import { FrontEndTimeSlot } from '../front-end-counseling/front-end-counseling-e
       secret: 'topSecret51',
       signOptions: { expiresIn: '17361907396' },
     }),
-    TypeOrmModule.forFeature([User, CounselingTimeSlot, FrontEndTimeSlot]),
+    TypeOrmModule.forFeature([
+      User,
+      CounselingTimeSlot,
+      FrontEndTimeSlot,
+      LegalTimeSlot,
+      PsychologyTimeSlot,
+    ]),
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
