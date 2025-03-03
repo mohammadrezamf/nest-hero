@@ -158,7 +158,7 @@ export class LegalCounselingService {
       // Query the CounselingTimeSlot with relations
       const slotTime = await this.legalTimeSlotRepository.findOne({
         where: { id: slotTimeId },
-        relations: ['psychologyCounselingTimes', 'user'],
+        relations: ['legalCounselingTimes', 'user'],
       });
 
       // Throw an error if the slotTime is not found
@@ -177,11 +177,11 @@ export class LegalCounselingService {
         user: slotTime.user
           ? {
               id: slotTime.user.id,
-              username: slotTime.user.username,
+              username: slotTime.user.phoneNumber,
               role: slotTime.user.role,
             }
           : null,
-        psychologyCounselingTimes: {
+        legalCounselingTimes: {
           id: slotTime.legalCounselingTimes.id,
           day: slotTime.legalCounselingTimes.day,
           date: slotTime.legalCounselingTimes.date,

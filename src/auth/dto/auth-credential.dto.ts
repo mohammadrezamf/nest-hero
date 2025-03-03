@@ -1,19 +1,8 @@
-import { IsString, MaxLength, MinLength } from 'class-validator';
+import { IsString } from 'class-validator';
 
 export class AuthCredentialDto {
   @IsString()
-  @MinLength(5, { message: 'Password must be at least 6 characters' })
-  @MaxLength(20, {
-    message: 'username must max length be at least 20 characters',
-  })
-  username: string;
-
-  @IsString()
-  @MinLength(5, { message: 'Password must be at least 5 characters' })
-  @MaxLength(20, {
-    message: 'username must max length be at least 20 characters',
-  })
-  password: string;
+  phoneNumber: string;
 }
 
 export enum UserRole {
@@ -26,8 +15,18 @@ export enum UserRole {
 }
 
 export type UserLoginRs = {
-  accessToken: string;
-  userName: string;
-  userRole: UserRole;
   id: string;
+  accessToken: string;
+  phoneNumber: string;
+  role: UserRole;
+};
+
+export type UserData = {
+  id: string;
+  phoneNumber: string;
+  role: UserRole;
+};
+
+export type UserList = {
+  data: UserData[];
 };

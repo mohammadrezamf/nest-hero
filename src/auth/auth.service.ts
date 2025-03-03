@@ -1,24 +1,16 @@
 import {
-  ConflictException,
   ForbiddenException,
   Injectable,
-  InternalServerErrorException,
   Logger,
   NotFoundException,
   OnModuleInit,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  AuthCredentialDto,
-  UserLoginRs,
-  UserRole,
-} from './dto/auth-credential.dto';
+import { UserRole } from './dto/auth-credential.dto';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { JWTPayload } from './jwt-payload.interface';
 import { CounselingTimeSlot } from '../general-counseling-times/general.counseling.times.entity';
 import { FrontEndTimeSlot } from '../front-end-counseling/front-end-counseling-entity';
 import { LegalTimeSlot } from '../legal-counseling/legal-counseling-entity';
@@ -43,80 +35,81 @@ export class AuthService implements OnModuleInit {
   ) {}
 
   async seedAdmin() {
-    const adminUsername = process.env.ADMIN_USERNAME || 'admin'; // Default to 'admin'
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin_password'; // Default to 'admin_password'
+    const adminPhoneNumber = process.env.PHONE_NUMBER || '09375332212'; // Default to 'admin'
 
     const adminExists = await this.usersRepository.findOne({
       where: { role: UserRole.ADMIN },
     });
 
-    if (adminExists) {
-      this.logger.log('Admin user already exists. Skipping creation.');
-      return;
+    if (!adminExists) {
+      const admin = this.usersRepository.create({
+        phoneNumber: adminPhoneNumber,
+        role: UserRole.ADMIN,
+      });
+      await this.usersRepository.save(admin);
+      console.log('Admin user created!');
     }
-
-    const salt = await bcrypt.genSalt();
-    const hashPassword = await bcrypt.hash(adminPassword, salt);
-
-    const adminUser = this.usersRepository.create({
-      username: adminUsername,
-      password: hashPassword,
-      role: UserRole.ADMIN,
-    });
-
-    await this.usersRepository.save(adminUser);
-    this.logger.log('Admin user created successfully.');
   }
 
   async onModuleInit() {
     await this.seedAdmin();
   }
 
-  // ------------------------
-  async createUser(authCredentialDto: AuthCredentialDto): Promise<void> {
-    const { username, password } = authCredentialDto;
+  // -------------- otp ---------------
+  async requestOtp(phoneNumber: string): Promise<{ message: string }> {
+    let user = await this.usersRepository.findOne({ where: { phoneNumber } });
 
-    const salt = await bcrypt.genSalt();
-    const hashPassword = await bcrypt.hash(password, salt);
-
-    const user = this.usersRepository.create({
-      username,
-      password: hashPassword,
-    });
-
-    try {
-      // Save the new user to the database
-      await this.usersRepository.save(user);
-    } catch (error) {
-      if (error.code === '23505') {
-        // Handle duplicate username error (unique constraint violation)
-        throw new ConflictException('username already exists');
-      } else {
-        // Handle unexpected errors
-        throw new InternalServerErrorException(error.message);
-      }
+    if (!user) {
+      // If the user does not exist, create a new one
+      user = this.usersRepository.create({ phoneNumber });
     }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.otp = otp;
+    user.otpExpiration = new Date(Date.now() + 5 * 60 * 1000); // OTP valid for 5 minutes
+
+    await this.usersRepository.save(user);
+
+    // Simulate sending OTP (In real-world, use Twilio, Firebase, etc.)
+    console.log(`OTP for ${phoneNumber}: ${otp}`);
+
+    return { message: 'OTP sent successfully' };
   }
 
-  async signUp(authCredentialsDto: AuthCredentialDto): Promise<void> {
-    return this.createUser(authCredentialsDto);
-  }
+  // Step 2: Verify OTP (Sign in or Sign up)
+  async verifyOtp(phoneNumber: string, otp: string) {
+    const user = await this.usersRepository.findOne({ where: { phoneNumber } });
 
-  async singIN(authCredentialsDto: AuthCredentialDto): Promise<UserLoginRs> {
-    const { username, password } = authCredentialsDto;
-    const user = await this.usersRepository.findOne({ where: { username } });
-    if (user && (await bcrypt.compare(password, user.password))) {
-      const payload: JWTPayload = { username };
-      const accessToken = await this.jwtService.sign(payload);
-      return {
-        accessToken,
-        userName: user.username,
-        userRole: user.role,
-        id: user.id,
-      };
-    } else {
-      throw new UnauthorizedException();
+    if (!user || user.otp !== otp || new Date() > user.otpExpiration) {
+      throw new UnauthorizedException('Invalid or expired OTP');
     }
+
+    // Clear OTP after successful verification
+    user.otp = null;
+    user.otpExpiration = null;
+
+    // Assign role if user is just being created
+    if (!user.role) {
+      user.role = UserRole.USER; // Default role
+    }
+
+    await this.usersRepository.save(user);
+
+    // Generate JWT token
+    const payload = {
+      phoneNumber: user.phoneNumber,
+      role: user.role,
+      id: user.id,
+    };
+    const accessToken = this.jwtService.sign(payload);
+
+    return {
+      accessToken,
+      phoneNumber: user.phoneNumber,
+      role: user.role,
+      id: user.id,
+    };
   }
 
   async getAllUsers(user: User): Promise<User[]> {

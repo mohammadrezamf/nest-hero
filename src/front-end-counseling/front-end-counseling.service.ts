@@ -180,7 +180,7 @@ export class FrontEndCounselingService {
         user: slotTime.user
           ? {
               id: slotTime.user.id,
-              username: slotTime.user.username,
+              username: slotTime.user.phoneNumber,
               role: slotTime.user.role,
             }
           : null,

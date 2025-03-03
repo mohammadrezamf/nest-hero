@@ -7,11 +7,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import {
-  AuthCredentialDto,
-  UserLoginRs,
-  UserRole,
-} from './dto/auth-credential.dto';
+import { UserRole } from './dto/auth-credential.dto';
 import { AuthService } from './auth.service';
 import { User } from './user.entity';
 import { AuthGuard } from '@nestjs/passport';
@@ -21,17 +17,20 @@ import { GetUser } from './get-user.decorator';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post('signup')
-  signUp(@Body() authCredentialDto: AuthCredentialDto): Promise<void> {
-    return this.authService.signUp(authCredentialDto);
+  @Post('request-otp')
+  async requestOtp(@Body('phoneNumber') phoneNumber: string) {
+    return this.authService.requestOtp(phoneNumber);
   }
 
-  @Post('signin')
-  signIn(@Body() authCredentialDto: AuthCredentialDto): Promise<UserLoginRs> {
-    return this.authService.singIN(authCredentialDto);
+  @Post('verify-otp')
+  async verifyOtp(
+    @Body('phoneNumber') phoneNumber: string,
+    @Body('otp') otp: string,
+  ) {
+    return this.authService.verifyOtp(phoneNumber, otp);
   }
 
-  @Get()
+  @Get('all-users')
   @UseGuards(AuthGuard('jwt'))
   getAllUser(@GetUser() user: User): Promise<User[]> {
     return this.authService.getAllUsers(user);
