@@ -21,12 +21,7 @@ export type UserLoginRs = {
   role: UserRole;
 };
 
-export type UserData = {
-  id: string;
-  phoneNumber: string;
-  role: UserRole;
-};
-
-export type UserList = {
-  data: UserData[];
+export type UpdateUser = {
+  displayName: string;
+  email: string;
 };

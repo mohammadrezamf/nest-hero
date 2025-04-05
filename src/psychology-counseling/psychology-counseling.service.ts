@@ -139,10 +139,31 @@ export class PsychologyCounselingService {
       return new Date(a.date).getTime() - new Date(b.date).getTime();
     });
 
+    const responseData = filteredData.map((item) => ({
+      id: item.id,
+      day: item.day,
+      date: item.date,
+      psychologyTimeSlots: item.psychologyTimeSlots.map((slot) => ({
+        id: slot.id,
+        active: slot.active,
+        booked: slot.booked,
+        clock: slot.clock,
+        user:
+          slot.user && slot.booked
+            ? {
+                id: slot.user?.id,
+                phoneNumber: slot.user?.phoneNumber, // ✅ Include user details if booked
+                displayName: slot.user?.displayName,
+                email: slot.user?.email,
+              }
+            : null,
+      })),
+    }));
+
     return {
       total,
       weekDaysTotal: filteredData.length,
-      data: filteredData,
+      data: responseData,
     };
   }
 

@@ -7,7 +7,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserRole } from './dto/auth-credential.dto';
+import { UpdateUser, UserRole } from './dto/auth-credential.dto';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -61,11 +61,12 @@ export class AuthService implements OnModuleInit {
 
     if (!user) {
       // If the user does not exist, create a new one
+      console.log('No user found. now we create that');
       user = this.usersRepository.create({ phoneNumber });
     }
 
     // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
     user.otp = otp;
     user.otpExpiration = new Date(Date.now() + 5 * 60 * 1000); // OTP valid for 5 minutes
 
@@ -74,15 +75,22 @@ export class AuthService implements OnModuleInit {
     // Simulate sending OTP (In real-world, use Twilio, Firebase, etc.)
     console.log(`OTP for ${phoneNumber}: ${otp}`);
 
-    return { message: 'OTP sent successfully' };
+    return { message: `OTP sent successfully:code:${otp}` };
   }
 
   // Step 2: Verify OTP (Sign in or Sign up)
   async verifyOtp(phoneNumber: string, otp: string) {
     const user = await this.usersRepository.findOne({ where: { phoneNumber } });
 
-    if (!user || user.otp !== otp || new Date() > user.otpExpiration) {
-      throw new UnauthorizedException('Invalid or expired OTP');
+    if (!user) {
+      throw new UnauthorizedException('user does not exist!');
+    }
+    if (user.otp !== otp) {
+      throw new UnauthorizedException('otp does not match');
+    }
+
+    if (new Date() > user.otpExpiration) {
+      throw new UnauthorizedException('expired otp');
     }
 
     // Clear OTP after successful verification
@@ -103,7 +111,12 @@ export class AuthService implements OnModuleInit {
       id: user.id,
     };
     const accessToken = this.jwtService.sign(payload);
-
+    console.log('user data', {
+      accessToken,
+      phoneNumber: user.phoneNumber,
+      role: user.role,
+      id: user.id,
+    });
     return {
       accessToken,
       phoneNumber: user.phoneNumber,
@@ -222,6 +235,20 @@ export class AuthService implements OnModuleInit {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     return {
       data: user,
+    };
+  }
+
+  async updateUserData(userId: string, data: UpdateUser) {
+    const { email, displayName } = data;
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.email = email;
+    user.displayName = displayName;
+    await this.usersRepository.save(user);
+    return {
+      message: 'User updated successfully',
     };
   }
 }

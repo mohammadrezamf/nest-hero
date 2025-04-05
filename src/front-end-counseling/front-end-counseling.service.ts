@@ -126,7 +126,7 @@ export class FrontEndCounselingService {
 
     const [data, total] =
       await this.frontEndCounselingTimesRepository.findAndCount({
-        relations: ['frontTimeSlots'], // ✅ Ensure time slots are included
+        relations: ['frontTimeSlots', 'frontTimeSlots.user'], // ✅ Ensure time slots are included
       });
     const filteredData = data.filter((item) => {
       const itemDate = new Date(item.date);
@@ -137,10 +137,31 @@ export class FrontEndCounselingService {
       return new Date(a.date).getTime() - new Date(b.date).getTime();
     });
 
+    const responseData = filteredData.map((item) => ({
+      id: item.id,
+      day: item.day,
+      date: item.date,
+      frontTimeSlots: item.frontTimeSlots.map((slot) => ({
+        id: slot.id,
+        active: slot.active,
+        booked: slot.booked,
+        clock: slot.clock,
+        user:
+          slot.user && slot.booked
+            ? {
+                id: slot.user?.id,
+                phoneNumber: slot.user?.phoneNumber, // ✅ Include user details if booked
+                displayName: slot.user?.displayName,
+                email: slot.user?.email,
+              }
+            : null,
+      })),
+    }));
+
     return {
       total,
       weekDaysTotal: filteredData.length,
-      data: filteredData,
+      data: responseData,
     };
   }
 

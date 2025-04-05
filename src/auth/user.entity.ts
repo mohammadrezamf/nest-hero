@@ -26,6 +26,13 @@ export class User {
 
   @Column({ nullable: true })
   otpExpiration: Date;
+
+  @Column({ nullable: true })
+  displayName: string;
+
+  @Column({ nullable: true })
+  email: string;
+
   // ---------------- other tables ---------------
   @OneToMany((_type) => Task, (task) => task.user, { eager: true })
   tasks: Task[];

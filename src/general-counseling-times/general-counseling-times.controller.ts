@@ -21,7 +21,7 @@ export class GeneralCounselingTimesController {
     private generalCounselingTimesService: GeneralCounselingTimesService,
   ) {}
 
-  @Post('/create-day')
+  @Post('create-day')
   async createWeekdaysAndTimeSlots() {
     return await this.generalCounselingTimesService.createWeekdaysAndTimeSlots();
   }

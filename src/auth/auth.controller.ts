@@ -5,9 +5,10 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
-import { UserRole } from './dto/auth-credential.dto';
+import { UpdateUser, UserRole } from './dto/auth-credential.dto';
 import { AuthService } from './auth.service';
 import { User } from './user.entity';
 import { AuthGuard } from '@nestjs/passport';
@@ -28,6 +29,20 @@ export class AuthController {
     @Body('otp') otp: string,
   ) {
     return this.authService.verifyOtp(phoneNumber, otp);
+  }
+
+  @Get('user')
+  @UseGuards(AuthGuard('jwt'))
+  async getUserInformation(@GetUser() user: User) {
+    const { id } = user;
+    return this.authService.getUserInformation(id);
+  }
+
+  @Put('user')
+  @UseGuards(AuthGuard('jwt'))
+  async updateUser(@GetUser() user: User, @Body('data') data: UpdateUser) {
+    const { id } = user;
+    return this.authService.updateUserData(id, data);
   }
 
   @Get('all-users')
@@ -52,14 +67,8 @@ export class AuthController {
   @Get('users-general-bookings')
   @UseGuards(AuthGuard('jwt'))
   async getUserAllBooking(@GetUser() user: User) {
+    console.log('user data :', user);
     const { id } = user;
     return this.authService.getUserAllCounselingBookings(id);
-  }
-
-  @Get('user-information')
-  @UseGuards(AuthGuard('jwt'))
-  async getUserInformation(@GetUser() user: User) {
-    const { id } = user;
-    return this.authService.getUserInformation(id);
   }
 }
