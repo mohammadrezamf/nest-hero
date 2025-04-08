@@ -18,11 +18,11 @@ import { LegalCounselingModule } from './legal-counseling/legal-counseling.modul
     PsychologyCounselingModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'postgres',
-      database: 'tasks',
+      host: process.env.DB_HOST, // Use environment variable
+      port: parseInt(process.env.DB_PORT, 10), // Parse the port number
+      username: process.env.DB_USERNAME, // Use environment variable
+      password: process.env.DB_PASSWORD, // Use environment variable
+      database: process.env.DB_DATABASE, // Use environment variable
       autoLoadEntities: true,
       synchronize: true,
     }),

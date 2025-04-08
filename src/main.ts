@@ -9,7 +9,10 @@ async function bootstrap() {
   app.enableCors({
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    origin: 'http://localhost:3000',
+    origin: [
+      'https://mentoo.liara.run', // Frontend
+      'http://localhost:3000', // Local frontend (optional)
+    ],
   });
 
   app.useGlobalPipes(new ValidationPipe());
