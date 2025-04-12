@@ -6,13 +6,22 @@ import { TransformInterceptor } from './transform.interceptor';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const allowedDomains = [
+    'http://localhost:3000',
+    'https://mentoo.liara.run',
+    'http://mentoo.liara.run',
+  ];
+
   app.enableCors({
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    origin: [
-      'https://mentoo.liara.run', // Frontend
-      'http://localhost:3000', // Local frontend (optional)
-    ],
+    origin: (origin, callback) => {
+      if (!origin || allowedDomains.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
   });
 
   app.useGlobalPipes(new ValidationPipe());
