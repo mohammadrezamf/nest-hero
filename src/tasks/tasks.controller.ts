@@ -42,7 +42,6 @@ export class TasksController {
     @Body() createTaskDto: CreateTaskDto,
     @GetUser() user: User,
   ): Promise<Task> {
-    console.log('user in create task:', user);
     return this.tasksService.createTask(createTaskDto, user);
   }
 

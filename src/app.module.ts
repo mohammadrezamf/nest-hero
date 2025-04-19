@@ -7,10 +7,18 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { FrontEndCounselingModule } from './front-end-counseling/front-end-counseling.module';
 import { PsychologyCounselingModule } from './psychology-counseling/psychology-counseling.module';
 import { LegalCounselingModule } from './legal-counseling/legal-counseling.module';
+import { ArticleModule } from './article/article.module';
+import { UploadModule } from './upload/upload.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'), // Serve /uploads folder
+      serveRoot: '/uploads', // Access with http://localhost:3000/uploads/...
+    }),
     AuthModule,
     TasksModule,
     GeneralCounselingTimesModule,
@@ -27,6 +35,8 @@ import { LegalCounselingModule } from './legal-counseling/legal-counseling.modul
       synchronize: true,
     }),
     LegalCounselingModule,
+    ArticleModule,
+    UploadModule,
   ],
 })
 export class AppModule {}

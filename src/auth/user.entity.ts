@@ -5,6 +5,7 @@ import { UserRole } from './dto/auth-credential.dto';
 import { FrontEndTimeSlot } from '../front-end-counseling/front-end-counseling-entity';
 import { PsychologyTimeSlot } from '../psychology-counseling/psychoogy-counseling-entity';
 import { LegalTimeSlot } from '../legal-counseling/legal-counseling-entity';
+import { UploadFile } from '../upload/pload.entity';
 
 @Entity()
 export class User {
@@ -60,4 +61,7 @@ export class User {
     nullable: true,
   })
   legalTimeSlot: LegalTimeSlot[];
+
+  @OneToMany(() => UploadFile, (file) => file.uploader)
+  uploadedFiles: UploadFile[];
 }
