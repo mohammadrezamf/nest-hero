@@ -4,9 +4,9 @@ export class CreateArticleDto {
   @IsNotEmpty()
   title: string;
   @IsNotEmpty()
-  body: string;
+  description: string;
 
   @IsOptional()
   @IsString()
-  image?: string;
+  imageFilename?: string;
 }

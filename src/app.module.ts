@@ -8,9 +8,15 @@ import { FrontEndCounselingModule } from './front-end-counseling/front-end-couns
 import { PsychologyCounselingModule } from './psychology-counseling/psychology-counseling.module';
 import { LegalCounselingModule } from './legal-counseling/legal-counseling.module';
 import { ArticleModule } from './article/article.module';
-import { UploadModule } from './upload/upload.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { FileController } from './file/file.controller';
+import { FileService } from './file/file.service';
+import { FileModule } from './file/file.module';
+
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 @Module({
   imports: [
@@ -24,6 +30,9 @@ import { join } from 'path';
     GeneralCounselingTimesModule,
     FrontEndCounselingModule,
     PsychologyCounselingModule,
+    LegalCounselingModule,
+    ArticleModule,
+    FileModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST, // Use environment variable
@@ -34,9 +43,6 @@ import { join } from 'path';
       autoLoadEntities: true,
       synchronize: true,
     }),
-    LegalCounselingModule,
-    ArticleModule,
-    UploadModule,
   ],
 })
 export class AppModule {}

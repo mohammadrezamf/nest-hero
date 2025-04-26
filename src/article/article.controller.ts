@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { ArticleService } from './article.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../auth/get-user.decorator';
@@ -17,5 +17,10 @@ export class ArticleController {
     @GetUser() user: User,
   ): Promise<Article> {
     return this.articleService.createArticle(createArticleDto, user);
+  }
+
+  @Get()
+  async getAll() {
+    return this.articleService.getAll();
   }
 }

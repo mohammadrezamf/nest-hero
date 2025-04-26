@@ -23,4 +23,8 @@ export class ArticleService {
     await this.articleRepository.save(article);
     return article;
   }
+
+  async getAll() {
+    return await this.articleRepository.find();
+  }
 }
