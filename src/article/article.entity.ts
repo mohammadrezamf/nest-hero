@@ -11,10 +11,10 @@ export class Article {
   title: string;
 
   @Column()
-  body: string;
+  description: string;
 
   @Column({ nullable: true })
-  image: string;
+  imageFilename: string;
 
   @ManyToOne((_type) => User, { eager: false })
   @Exclude({ toPlainOnly: true })
