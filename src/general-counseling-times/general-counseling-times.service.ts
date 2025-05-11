@@ -16,6 +16,7 @@ import { User } from '../auth/user.entity';
 import { UserRole } from '../auth/dto/auth-credential.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class GeneralCounselingTimesService {
@@ -26,6 +27,7 @@ export class GeneralCounselingTimesService {
     private generalCounselingTimesRepository: Repository<GeneralCounselingTimes>,
     @InjectRepository(CounselingTimeSlot)
     private counselingTimeSlotRepository: Repository<CounselingTimeSlot>,
+    private readonly mailService: MailService, //
   ) {}
 
   // CRON JOB: Run every hour
@@ -206,6 +208,9 @@ export class GeneralCounselingTimesService {
               role: slotTime.user.role,
             }
           : null,
+        creatorName: slotTime.creatorName,
+        creatorEmail: slotTime.creatorEmail,
+        creatorPhoneNumber: slotTime.creatorPhoneNumber,
         generalCounselingTimes: {
           id: slotTime.generalCounselingTimes.id,
           day: slotTime.generalCounselingTimes.day,
@@ -239,8 +244,9 @@ export class GeneralCounselingTimesService {
 
       // Update the active status
       timeSlot.active = updateActiveDto.active;
-      timeSlot.user = user;
-
+      timeSlot.creatorName = user.displayName;
+      timeSlot.creatorEmail = user.email;
+      timeSlot.creatorPhoneNumber = user.phoneNumber;
       // Save the updated time slot to the database
       await this.counselingTimeSlotRepository.save(timeSlot);
 
@@ -279,6 +285,18 @@ export class GeneralCounselingTimesService {
 
       // Save the updated time slot to the database
       await this.counselingTimeSlotRepository.save(timeSlot);
+      console.log('creatorEmail', timeSlot.creatorEmail);
+      if (timeSlot.creatorEmail) {
+        await this.mailService.sendBookingNotification({
+          to: timeSlot?.creatorEmail,
+          coachName: timeSlot?.creatorName,
+          bookedByName: user?.displayName,
+          email: user?.email,
+          phone: user?.phoneNumber,
+          clock: timeSlot?.clock,
+          date: timeSlot?.generalCounselingTimes?.date,
+        });
+      }
 
       return {
         message: `Booking status for time slot with ID ${updateBookedDto.timeSlotID} updated successfully.`,

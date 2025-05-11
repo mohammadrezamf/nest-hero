@@ -10,11 +10,10 @@ import { LegalCounselingModule } from './legal-counseling/legal-counseling.modul
 import { ArticleModule } from './article/article.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
-import { FileController } from './file/file.controller';
-import { FileService } from './file/file.service';
 import { FileModule } from './file/file.module';
 
 import * as dotenv from 'dotenv';
+import { MailModule } from './mail/mail.module';
 
 dotenv.config();
 
@@ -33,6 +32,7 @@ dotenv.config();
     LegalCounselingModule,
     ArticleModule,
     FileModule,
+    MailModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST, // Use environment variable

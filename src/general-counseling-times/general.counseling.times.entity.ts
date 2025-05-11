@@ -33,6 +33,15 @@ export class CounselingTimeSlot {
   @Column({ default: false })
   active: boolean;
 
+  @Column({ nullable: true })
+  creatorName: string;
+
+  @Column({ nullable: true })
+  creatorEmail: string;
+
+  @Column({ nullable: true })
+  creatorPhoneNumber: string;
+
   @ManyToOne(() => User, (user) => user.counselingTimeSlots, {
     eager: false,
     nullable: true,

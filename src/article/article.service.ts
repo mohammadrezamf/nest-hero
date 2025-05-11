@@ -8,6 +8,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateArticleDto } from './dto/create-article-dto';
 import { User } from '../auth/user.entity';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const SERVER_URL = 'http://localhost:8080'; // you can move this to
 
@@ -67,5 +69,36 @@ export class ArticleService {
       description: found.description,
       imageUrl: `${SERVER_URL}/uploads/files/${found.imageFilename}`,
     };
+  }
+
+  async deleteById(id: string) {
+    const article = await this.articleRepository.findOne({ where: { id: id } });
+    if (!article) {
+      throw new NotFoundException('article with id not found');
+    }
+
+    const imagepath = path.join(
+      __dirname,
+      '..',
+      '..',
+      'upload',
+      'files',
+      article.imageFilename,
+    );
+
+    try {
+      fs.unlinkSync(imagepath);
+    } catch (err) {
+      console.log('err', err);
+    }
+
+    try {
+      await this.articleRepository.delete(id);
+    } catch (error) {
+      console.log('err', error);
+      throw error;
+    }
+
+    return { message: 'deleted article' };
   }
 }
