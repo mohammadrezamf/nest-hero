@@ -56,7 +56,9 @@ export class AuthService implements OnModuleInit {
   }
 
   // -------------- otp ---------------
-  async requestOtp(phoneNumber: string): Promise<{ message: string }> {
+  async requestOtp(
+    phoneNumber: string,
+  ): Promise<{ message: string; otp: string }> {
     let user = await this.usersRepository.findOne({ where: { phoneNumber } });
 
     if (!user) {
@@ -75,7 +77,10 @@ export class AuthService implements OnModuleInit {
     // Simulate sending OTP (In real-world, use Twilio, Firebase, etc.)
     console.log(`OTP for ${phoneNumber}: ${otp}`);
 
-    return { message: `OTP sent successfully:code:${otp}` };
+    return {
+      message: `OTP sent successfully:code:${otp}`,
+      otp: otp,
+    };
   }
 
   // Step 2: Verify OTP (Sign in or Sign up)
