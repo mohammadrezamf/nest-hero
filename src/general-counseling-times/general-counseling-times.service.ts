@@ -17,6 +17,7 @@ import { UserRole } from '../auth/dto/auth-credential.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { MailService } from '../mail/mail.service';
+import { ResendService } from '../resend/resend.service';
 
 @Injectable()
 export class GeneralCounselingTimesService {
@@ -28,6 +29,7 @@ export class GeneralCounselingTimesService {
     @InjectRepository(CounselingTimeSlot)
     private counselingTimeSlotRepository: Repository<CounselingTimeSlot>,
     private readonly mailService: MailService, //
+    private readonly resendService: ResendService,
   ) {}
 
   // CRON JOB: Run every hour
@@ -285,17 +287,12 @@ export class GeneralCounselingTimesService {
 
       // Save the updated time slot to the database
       await this.counselingTimeSlotRepository.save(timeSlot);
-      console.log('creatorEmail', timeSlot.creatorEmail);
       if (timeSlot.creatorEmail) {
-        await this.mailService.sendBookingNotification({
-          to: timeSlot?.creatorEmail,
-          coachName: timeSlot?.creatorName,
-          bookedByName: user?.displayName,
-          email: user?.email,
-          phone: user?.phoneNumber,
-          clock: timeSlot?.clock,
-          date: timeSlot?.generalCounselingTimes?.date,
-        });
+        await this.resendService.sendEmail(
+          timeSlot.creatorEmail,
+          `name od customer:${user.displayName} phone number ${user.phoneNumber}`,
+          `<strong>The time slot has been updated.</strong>`,
+        );
       }
 
       return {

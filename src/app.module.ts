@@ -14,6 +14,7 @@ import { FileModule } from './file/file.module';
 
 import * as dotenv from 'dotenv';
 import { MailModule } from './mail/mail.module';
+import { ResendModule } from './resend/resend.module';
 
 dotenv.config();
 
@@ -21,8 +22,8 @@ dotenv.config();
   imports: [
     ScheduleModule.forRoot(),
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'), // Serve /uploads folder
-      serveRoot: '/uploads', // Access with http://localhost:3000/uploads/...
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
     }),
     AuthModule,
     TasksModule,
@@ -43,6 +44,7 @@ dotenv.config();
       autoLoadEntities: true,
       synchronize: true,
     }),
+    ResendModule,
   ],
 })
 export class AppModule {}
