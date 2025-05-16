@@ -33,6 +33,15 @@ export class FrontEndTimeSlot {
   @Column()
   clock: string;
 
+  @Column({ nullable: true })
+  creatorName: string;
+
+  @Column({ nullable: true })
+  creatorEmail: string;
+
+  @Column({ nullable: true })
+  creatorPhoneNumber: string;
+
   @ManyToOne(() => User, (user) => user.frontEndTimeSlots, {
     eager: false,
     nullable: true,

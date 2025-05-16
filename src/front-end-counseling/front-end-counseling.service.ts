@@ -16,6 +16,7 @@ import { UpdateActiveDto } from '../general-counseling-times/dto/updateActiveDto
 import { User } from '../auth/user.entity';
 import { UserRole } from '../auth/dto/auth-credential.dto';
 import { UpdateBookedDto } from '../general-counseling-times/dto/updateBookedDto';
+import { ResendService } from '../resend/resend.service';
 
 @Injectable()
 export class FrontEndCounselingService {
@@ -26,6 +27,7 @@ export class FrontEndCounselingService {
     private frontEndCounselingTimesRepository: Repository<FrontEndCounselingTimes>,
     @InjectRepository(FrontEndTimeSlot)
     private frontEndTimeSlotRepository: Repository<FrontEndTimeSlot>,
+    private readonly resendService: ResendService,
   ) {}
 
   @Cron(CronExpression.EVERY_HOUR)
@@ -278,6 +280,13 @@ export class FrontEndCounselingService {
 
       // Save the updated time slot to the database
       await this.frontEndTimeSlotRepository.save(timeSlot);
+      if (timeSlot.creatorEmail) {
+        await this.resendService.sendEmail(
+          timeSlot.creatorEmail,
+          `name od customer:${user.displayName} phone number ${user.phoneNumber}`,
+          `<strong>The time slot has been updated.</strong>`,
+        );
+      }
 
       return {
         message: `Booking status for time slot with ID ${updateBookedDto.timeSlotID} updated successfully.`,
