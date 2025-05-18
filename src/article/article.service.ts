@@ -11,7 +11,7 @@ import { User } from '../auth/user.entity';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const SERVER_URL = 'http://localhost:8080'; // you can move this to
+const SERVER_URL = 'https://mentoo-api.liara.run'; // you can move this to
 
 @Injectable()
 export class ArticleService {
