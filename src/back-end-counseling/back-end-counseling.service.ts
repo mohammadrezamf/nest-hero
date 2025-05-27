@@ -133,7 +133,7 @@ export class BackEndCounselingService {
       id: item.id,
       day: item.day,
       date: item.date,
-      backEndSlots: item.backEndSlots.map((slot) => ({
+      backEndTimeSlots: item.backEndTimeSlots.map((slot) => ({
         id: slot.id,
         active: slot.active,
         booked: slot.booked,

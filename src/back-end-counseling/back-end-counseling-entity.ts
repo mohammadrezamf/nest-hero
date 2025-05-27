@@ -16,7 +16,7 @@ export class BackEndCounselingTimes {
     eager: true,
     cascade: true,
   })
-  backEndSlots: BackEndTimeSlot[];
+  backEndTimeSlots: BackEndTimeSlot[];
 }
 
 @Entity()
@@ -48,7 +48,7 @@ export class BackEndTimeSlot {
   })
   user: User;
 
-  @ManyToOne(() => BackEndCounselingTimes, (item) => item.backEndSlots, {
+  @ManyToOne(() => BackEndCounselingTimes, (item) => item.backEndTimeSlots, {
     eager: false,
     nullable: true,
   })
