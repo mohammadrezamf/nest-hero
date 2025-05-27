@@ -6,6 +6,10 @@ import { FrontEndTimeSlot } from '../front-end-counseling/front-end-counseling-e
 import { PsychologyTimeSlot } from '../psychology-counseling/psychoogy-counseling-entity';
 import { LegalTimeSlot } from '../legal-counseling/legal-counseling-entity';
 import { FileEntity } from '../file/file.entity';
+import { BackEndTimeSlot } from '../back-end-counseling/back-end-counseling-entity';
+import { DesignTimeSlot } from '../designer-counseling/designer-counseling-entity';
+import { PMTimeSlot } from '../product-manager-counseling/pm-entity';
+import { SecurityTimeSlot } from '../security-counseling/security-counseling.entity';
 
 @Entity()
 export class User {
@@ -49,6 +53,30 @@ export class User {
     nullable: true,
   })
   frontEndTimeSlots: FrontEndTimeSlot[];
+
+  @OneToMany(() => BackEndTimeSlot, (slot) => slot.user, {
+    eager: true,
+    nullable: true,
+  })
+  backEndTimeSlots: BackEndTimeSlot[];
+
+  @OneToMany(() => DesignTimeSlot, (slot) => slot.user, {
+    eager: true,
+    nullable: true,
+  })
+  designTimeSlots: FrontEndTimeSlot[];
+
+  @OneToMany(() => PMTimeSlot, (slot) => slot.user, {
+    eager: true,
+    nullable: true,
+  })
+  pmTimeSlots: PMTimeSlot[];
+
+  @OneToMany(() => SecurityTimeSlot, (slot) => slot.user, {
+    eager: true,
+    nullable: true,
+  })
+  securityTimeSlots: SecurityTimeSlot[];
 
   @OneToMany(() => PsychologyTimeSlot, (slot) => slot.user, {
     eager: true,

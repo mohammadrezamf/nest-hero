@@ -15,6 +15,10 @@ import { FileModule } from './file/file.module';
 import * as dotenv from 'dotenv';
 import { MailModule } from './mail/mail.module';
 import { ResendModule } from './resend/resend.module';
+import { BackEndCounselingModule } from './back-end-counseling/back-end-counseling.module';
+import { ProductManagerCounselingModule } from './product-manager-counseling/product-manager-counseling.module';
+import { SecurityCounselingModule } from './security-counseling/security-counseling.module';
+import { DesignerCounselingModule } from './designer-counseling/designer-counseling.module';
 
 dotenv.config();
 
@@ -34,6 +38,11 @@ dotenv.config();
     ArticleModule,
     FileModule,
     MailModule,
+    ResendModule,
+    BackEndCounselingModule,
+    ProductManagerCounselingModule,
+    SecurityCounselingModule,
+    DesignerCounselingModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST, // Use environment variable
@@ -44,7 +53,6 @@ dotenv.config();
       autoLoadEntities: true,
       synchronize: true,
     }),
-    ResendModule,
   ],
 })
 export class AppModule {}

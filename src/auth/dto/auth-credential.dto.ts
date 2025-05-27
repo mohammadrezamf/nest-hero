@@ -10,6 +10,10 @@ export enum UserRole {
   USER = 'user',
   GENERAL = 'general',
   FRONT_END = 'frontEnd',
+  SECURITY = 'security',
+  PRODUCT_MANAGER = 'productManager',
+  DESIGN = 'design',
+  BACK_END = 'backEnd',
   PSYCHOLOGY = 'psychology',
   LEGAL = 'legal',
 }
