@@ -8,36 +8,35 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-
+import { MentorOneCounselingService } from './mentor-one-counseling.service';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateBookedDto } from '../general-counseling-times/dto/updateBookedDto';
 import { GetUser } from '../auth/get-user.decorator';
 import { User } from '../auth/user.entity';
 import { UpdateActiveDto } from '../general-counseling-times/dto/updateActiveDto';
-import { DesignerCounselingService } from './designer-counseling.service';
 
-@Controller('designer-counseling')
-export class DesignerCounselingController {
-  constructor(private designCounselingService: DesignerCounselingService) {}
+@Controller('mentor-one')
+export class MentorOneCounselingController {
+  constructor(private mentorOneCounselingService: MentorOneCounselingService) {}
 
   @Post('/create-day')
   async createWeekdaysAndTimeSlots() {
-    return await this.designCounselingService.createWeekdaysAndTimeSlots();
+    return await this.mentorOneCounselingService.createWeekdaysAndTimeSlots();
   }
 
   @Get('one-week')
   async getAllDaysWithTimeSlots() {
-    return this.designCounselingService.getWeekWithTimeSlots();
+    return this.mentorOneCounselingService.getWeekWithTimeSlots();
   }
 
   @Delete('delete-days')
   async deleteAllDaysWithTimeSlots() {
-    return await this.designCounselingService.deleteAllDaysWithTimeSlots();
+    return await this.mentorOneCounselingService.deleteAllDaysWithTimeSlots();
   }
 
   @Get(':slotTimeId/slot-time')
   async getSlotTimeWithDayAndUser(@Param('slotTimeId') id: string) {
-    return await this.designCounselingService.getSlotTimeWithDayAndUser(id);
+    return await this.mentorOneCounselingService.getSlotTimeWithDayAndUser(id);
   }
 
   // ------------ update -booked--------
@@ -47,7 +46,7 @@ export class DesignerCounselingController {
     @Body() updateBookedDto: UpdateBookedDto,
     @GetUser() user: User,
   ) {
-    return this.designCounselingService.updateBooked(updateBookedDto, user);
+    return this.mentorOneCounselingService.updateBooked(updateBookedDto, user);
   }
 
   // --------------- update--- active ---------
@@ -57,7 +56,7 @@ export class DesignerCounselingController {
     @Body() updateActiveDto: UpdateActiveDto,
     @GetUser() user: User,
   ) {
-    return this.designCounselingService.updateActiveStatus(
+    return this.mentorOneCounselingService.updateActiveStatus(
       updateActiveDto,
       user,
     );

@@ -2,7 +2,7 @@ import { Column, Entity, ManyToOne, OneToMany, PrimaryColumn } from 'typeorm';
 import { User } from '../auth/user.entity';
 
 @Entity()
-export class SecurityCounselingTimes {
+export class MentorFourCounselingTimes {
   @PrimaryColumn()
   id: string;
 
@@ -12,15 +12,19 @@ export class SecurityCounselingTimes {
   @Column({ type: 'date', nullable: false })
   date: string;
 
-  @OneToMany(() => SecurityTimeSlot, (slot) => slot.securityCounselingTimes, {
-    eager: true,
-    cascade: true,
-  })
-  securityTimeSlots: SecurityTimeSlot[];
+  @OneToMany(
+    () => MentorFourTimeSlot,
+    (slot) => slot.mentorFourCounselingTimes,
+    {
+      eager: true,
+      cascade: true,
+    },
+  )
+  mentorFourTimeSlots: MentorFourTimeSlot[];
 }
 
 @Entity()
-export class SecurityTimeSlot {
+export class MentorFourTimeSlot {
   @PrimaryColumn()
   id: string;
 
@@ -42,15 +46,19 @@ export class SecurityTimeSlot {
   @Column({ nullable: true })
   creatorPhoneNumber: string;
 
-  @ManyToOne(() => User, (user) => user.securityTimeSlots, {
+  @ManyToOne(() => User, (user) => user.mentorFourTimeSlots, {
     eager: false,
     nullable: true,
   })
   user: User;
 
-  @ManyToOne(() => SecurityCounselingTimes, (item) => item.securityTimeSlots, {
-    eager: false,
-    nullable: true,
-  })
-  securityCounselingTimes: SecurityCounselingTimes;
+  @ManyToOne(
+    () => MentorFourCounselingTimes,
+    (item) => item.mentorFourTimeSlots,
+    {
+      eager: false,
+      nullable: true,
+    },
+  )
+  mentorFourCounselingTimes: MentorFourCounselingTimes;
 }

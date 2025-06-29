@@ -4,30 +4,30 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
-import { ResendService } from '../resend/resend.service';
 import {
-  DesignCounselingTimes,
-  DesignTimeSlot,
-} from './designer-counseling-entity';
+  MentorOneCounselingTimes,
+  MentorOneTimeSlot,
+} from './mentor-one-counseling-entity';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
-
 import { v4 as uuidv4 } from 'uuid';
 import { UpdateActiveDto } from '../general-counseling-times/dto/updateActiveDto';
 import { User } from '../auth/user.entity';
 import { UserRole } from '../auth/dto/auth-credential.dto';
 import { UpdateBookedDto } from '../general-counseling-times/dto/updateBookedDto';
+import { ResendService } from '../resend/resend.service';
 
 @Injectable()
-export class DesignerCounselingService {
-  private readonly logger = new Logger(DesignerCounselingService.name);
+export class MentorOneCounselingService {
+  private readonly logger = new Logger(MentorOneCounselingService.name);
 
   constructor(
-    @InjectRepository(DesignCounselingTimes)
-    private designCounselingTimesRepository: Repository<DesignCounselingTimes>,
-    @InjectRepository(DesignTimeSlot)
-    private designTimeSlotRepository: Repository<DesignTimeSlot>,
+    @InjectRepository(MentorOneCounselingTimes)
+    private mentorOneCounselingTimesRepository: Repository<MentorOneCounselingTimes>,
+    @InjectRepository(MentorOneTimeSlot)
+    private mentorOneTimeSlotRepository: Repository<MentorOneTimeSlot>,
+
     private readonly resendService: ResendService,
   ) {}
 
@@ -55,7 +55,7 @@ export class DesignerCounselingService {
     twoWeeksLater.setDate(today.getDate() + 14); // Set the range for two weeks
 
     // Fetch all existing dates within the two-week range
-    const existingDays = await this.designCounselingTimesRepository.find({
+    const existingDays = await this.mentorOneCounselingTimesRepository.find({
       where: {
         date: Between(
           today.toISOString().split('T')[0],
@@ -82,23 +82,25 @@ export class DesignerCounselingService {
 
       if (!existingDatesSet.has(formattedDate)) {
         // If the date is missing, create it
-        const designCounselingTime = new DesignCounselingTimes();
-        designCounselingTime.id = uuidv4();
-        designCounselingTime.day = dayOfWeek;
-        designCounselingTime.date = formattedDate;
+        const mentorOneCounselingTime = new MentorOneCounselingTimes();
+        mentorOneCounselingTime.id = uuidv4();
+        mentorOneCounselingTime.day = dayOfWeek;
+        mentorOneCounselingTime.date = formattedDate;
 
-        await this.designCounselingTimesRepository.save(designCounselingTime);
+        await this.mentorOneCounselingTimesRepository.save(
+          mentorOneCounselingTime,
+        );
 
         for (const hour of hours) {
-          const timeSlot = new DesignTimeSlot();
+          const timeSlot = new MentorOneTimeSlot();
 
           timeSlot.id = uuidv4();
           timeSlot.clock = hour;
           timeSlot.booked = false;
           timeSlot.active = false;
-          timeSlot.designCounselingTimes = designCounselingTime;
+          timeSlot.mentorOneCounselingTimes = mentorOneCounselingTime;
 
-          await this.designTimeSlotRepository.save(timeSlot);
+          await this.mentorOneTimeSlotRepository.save(timeSlot);
         }
 
         // Add newly created date to the Set to prevent further duplicates
@@ -118,8 +120,8 @@ export class DesignerCounselingService {
     nextWeek.setDate(today.getDate() + 6); // Fetch for the next 7 days
 
     const [data, total] =
-      await this.designCounselingTimesRepository.findAndCount({
-        relations: ['designTimeSlots', 'designTimeSlots.user'], // ✅ Ensure time slots are included
+      await this.mentorOneCounselingTimesRepository.findAndCount({
+        relations: ['mentorOneTimeSlots', 'mentorOneTimeSlots.user'], // ✅ Ensure time slots are included
       });
     const filteredData = data.filter((item) => {
       const itemDate = new Date(item.date);
@@ -134,7 +136,7 @@ export class DesignerCounselingService {
       id: item.id,
       day: item.day,
       date: item.date,
-      designTimeSlots: item.designTimeSlots.map((slot) => ({
+      mentorOneTimeSlots: item.mentorOneTimeSlots.map((slot) => ({
         id: slot.id,
         active: slot.active,
         booked: slot.booked,
@@ -161,8 +163,8 @@ export class DesignerCounselingService {
   // ------------------------ DELETE ----------------------------------------
 
   async deleteAllDaysWithTimeSlots() {
-    await this.designTimeSlotRepository.delete({});
-    await this.designCounselingTimesRepository.delete({});
+    await this.mentorOneTimeSlotRepository.delete({});
+    await this.mentorOneCounselingTimesRepository.delete({});
 
     return {
       message: 'All days and time slots have been deleted successfully!',
@@ -173,9 +175,9 @@ export class DesignerCounselingService {
   async getSlotTimeWithDayAndUser(slotTimeId: string) {
     try {
       // Query the CounselingTimeSlot with relations
-      const slotTime = await this.designTimeSlotRepository.findOne({
+      const slotTime = await this.mentorOneTimeSlotRepository.findOne({
         where: { id: slotTimeId },
-        relations: ['designCounselingTimes', 'user'],
+        relations: ['mentorOneCounselingTimes', 'user'],
       });
 
       // Throw an error if the slotTime is not found
@@ -198,10 +200,10 @@ export class DesignerCounselingService {
               role: slotTime.user.role,
             }
           : null,
-        designCounselingTimes: {
-          id: slotTime.designCounselingTimes.id,
-          day: slotTime.designCounselingTimes.day,
-          date: slotTime.designCounselingTimes.date,
+        mentorOneCounselingTimes: {
+          id: slotTime.mentorOneCounselingTimes.id,
+          day: slotTime.mentorOneCounselingTimes.day,
+          date: slotTime.mentorOneCounselingTimes.date,
         },
       };
     } catch (error) {
@@ -219,7 +221,7 @@ export class DesignerCounselingService {
       }
 
       // Find the specific time slot by its ID
-      const timeSlot = await this.designTimeSlotRepository.findOne({
+      const timeSlot = await this.mentorOneTimeSlotRepository.findOne({
         where: { id: updateActiveDto.timeSlotID },
       });
 
@@ -234,7 +236,7 @@ export class DesignerCounselingService {
       timeSlot.user = user;
 
       // Save the updated time slot to the database
-      await this.designTimeSlotRepository.save(timeSlot);
+      await this.mentorOneTimeSlotRepository.save(timeSlot);
 
       return {
         message: `Active status for time slot with ID ${updateActiveDto.timeSlotID} updated successfully.`,
@@ -248,14 +250,14 @@ export class DesignerCounselingService {
   //   ------------------- UPD0ATE BOOKED ---------------------------------------
   async updateBooked(updateBookedDto: UpdateBookedDto, user: User) {
     try {
-      if (user.role === UserRole.DESIGN) {
+      if (user.role === UserRole.MENTOR_ONE) {
         return new BadRequestException(
           `You do not have permission to perform this action`,
         );
       }
 
       // Find the specific time slot by its ID
-      const timeSlot = await this.designTimeSlotRepository.findOne({
+      const timeSlot = await this.mentorOneTimeSlotRepository.findOne({
         where: { id: updateBookedDto.timeSlotID },
       });
 
@@ -270,7 +272,7 @@ export class DesignerCounselingService {
       timeSlot.user = user;
 
       // Save the updated time slot to the database
-      await this.designTimeSlotRepository.save(timeSlot);
+      await this.mentorOneTimeSlotRepository.save(timeSlot);
       if (timeSlot.creatorEmail) {
         await this.resendService.sendEmail(
           timeSlot.creatorEmail,

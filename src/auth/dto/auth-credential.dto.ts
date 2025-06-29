@@ -10,6 +10,7 @@ export enum UserRole {
   USER = 'user',
   GENERAL = 'general',
   FRONT_END = 'frontEnd',
+  MENTOR_ONE = 'mentorOne',
   SECURITY = 'security',
   PRODUCT_MANAGER = 'productManager',
   DESIGN = 'design',

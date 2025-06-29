@@ -4,9 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { GeneralCounselingTimesModule } from './general-counseling-times/general-counseling-times.module';
 import { ScheduleModule } from '@nestjs/schedule';
-import { FrontEndCounselingModule } from './front-end-counseling/front-end-counseling.module';
-import { PsychologyCounselingModule } from './psychology-counseling/psychology-counseling.module';
-import { LegalCounselingModule } from './legal-counseling/legal-counseling.module';
+import { MentorOneCounselingModule } from './mentor-one/mentor-one-counseling.module';
 import { ArticleModule } from './article/article.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
@@ -15,10 +13,9 @@ import { FileModule } from './file/file.module';
 import * as dotenv from 'dotenv';
 import { MailModule } from './mail/mail.module';
 import { ResendModule } from './resend/resend.module';
-import { BackEndCounselingModule } from './back-end-counseling/back-end-counseling.module';
-import { ProductManagerCounselingModule } from './product-manager-counseling/product-manager-counseling.module';
-import { SecurityCounselingModule } from './security-counseling/security-counseling.module';
-import { DesignerCounselingModule } from './designer-counseling/designer-counseling.module';
+import { MentorTwoCounselingModule } from './mentor-two/mentor-two-counseling.module';
+import { MentorThreeCounselingModule } from './mentor-three/mentor-three-counseling.module';
+import { MentorFourCounselingModule } from './mentor-four/mentor-four-counseling.module';
 
 dotenv.config();
 
@@ -32,17 +29,14 @@ dotenv.config();
     AuthModule,
     TasksModule,
     GeneralCounselingTimesModule,
-    FrontEndCounselingModule,
-    PsychologyCounselingModule,
-    LegalCounselingModule,
+    MentorOneCounselingModule,
+    MentorTwoCounselingModule,
+    MentorThreeCounselingModule,
+    MentorFourCounselingModule,
     ArticleModule,
     FileModule,
     MailModule,
     ResendModule,
-    BackEndCounselingModule,
-    ProductManagerCounselingModule,
-    SecurityCounselingModule,
-    DesignerCounselingModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST, // Use environment variable

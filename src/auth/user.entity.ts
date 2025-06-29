@@ -2,14 +2,11 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Task } from '../tasks/task.entity';
 import { CounselingTimeSlot } from '../general-counseling-times/general.counseling.times.entity';
 import { UserRole } from './dto/auth-credential.dto';
-import { FrontEndTimeSlot } from '../front-end-counseling/front-end-counseling-entity';
-import { PsychologyTimeSlot } from '../psychology-counseling/psychoogy-counseling-entity';
-import { LegalTimeSlot } from '../legal-counseling/legal-counseling-entity';
+import { MentorOneTimeSlot } from '../mentor-one/mentor-one-counseling-entity';
 import { FileEntity } from '../file/file.entity';
-import { BackEndTimeSlot } from '../back-end-counseling/back-end-counseling-entity';
-import { DesignTimeSlot } from '../designer-counseling/designer-counseling-entity';
-import { PMTimeSlot } from '../product-manager-counseling/pm-entity';
-import { SecurityTimeSlot } from '../security-counseling/security-counseling.entity';
+import { MentorTwoTimeSlot } from '../mentor-two/mentor-two-counseling-entity';
+import { MentorThreeTimeSlot } from '../mentor-three/mentor-three-counseling-entity';
+import { MentorFourTimeSlot } from '../mentor-four/mentor-four-counseling-entity';
 
 @Entity()
 export class User {
@@ -48,47 +45,29 @@ export class User {
   })
   counselingTimeSlots: CounselingTimeSlot[];
 
-  @OneToMany(() => FrontEndTimeSlot, (slot) => slot.user, {
+  @OneToMany(() => MentorOneTimeSlot, (slot) => slot.user, {
     eager: true,
     nullable: true,
   })
-  frontEndTimeSlots: FrontEndTimeSlot[];
+  mentorOneTimeSlots: MentorOneTimeSlot[];
 
-  @OneToMany(() => BackEndTimeSlot, (slot) => slot.user, {
+  @OneToMany(() => MentorTwoTimeSlot, (slot) => slot.user, {
     eager: true,
     nullable: true,
   })
-  backEndTimeSlots: BackEndTimeSlot[];
+  mentorTwoTimeSlots: MentorTwoTimeSlot[];
 
-  @OneToMany(() => DesignTimeSlot, (slot) => slot.user, {
+  @OneToMany(() => MentorThreeTimeSlot, (slot) => slot.user, {
     eager: true,
     nullable: true,
   })
-  designTimeSlots: FrontEndTimeSlot[];
+  mentorThreeTimeSlots: MentorThreeTimeSlot[];
 
-  @OneToMany(() => PMTimeSlot, (slot) => slot.user, {
+  @OneToMany(() => MentorFourTimeSlot, (slot) => slot.user, {
     eager: true,
     nullable: true,
   })
-  pmTimeSlots: PMTimeSlot[];
-
-  @OneToMany(() => SecurityTimeSlot, (slot) => slot.user, {
-    eager: true,
-    nullable: true,
-  })
-  securityTimeSlots: SecurityTimeSlot[];
-
-  @OneToMany(() => PsychologyTimeSlot, (slot) => slot.user, {
-    eager: true,
-    nullable: true,
-  })
-  psychologyTimeSlot: PsychologyTimeSlot[];
-
-  @OneToMany(() => LegalTimeSlot, (slot) => slot.user, {
-    eager: true,
-    nullable: true,
-  })
-  legalTimeSlot: LegalTimeSlot[];
+  mentorFourTimeSlots: MentorFourTimeSlot[];
 
   @OneToMany(() => FileEntity, (file) => file.user)
   files: FileEntity[];

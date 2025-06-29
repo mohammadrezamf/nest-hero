@@ -12,9 +12,6 @@ import { User } from './user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { CounselingTimeSlot } from '../general-counseling-times/general.counseling.times.entity';
-import { FrontEndTimeSlot } from '../front-end-counseling/front-end-counseling-entity';
-import { LegalTimeSlot } from '../legal-counseling/legal-counseling-entity';
-import { PsychologyTimeSlot } from '../psychology-counseling/psychoogy-counseling-entity';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -26,12 +23,6 @@ export class AuthService implements OnModuleInit {
     private jwtService: JwtService,
     @InjectRepository(CounselingTimeSlot)
     private counselingTimeSlotRepository: Repository<CounselingTimeSlot>,
-    @InjectRepository(FrontEndTimeSlot)
-    private frontEndTimeSlotRepository: Repository<FrontEndTimeSlot>,
-    @InjectRepository(LegalTimeSlot)
-    private legalTimesSlotRepository: Repository<LegalTimeSlot>,
-    @InjectRepository(PsychologyTimeSlot)
-    private psychologyTimeslotRepository: Repository<PsychologyTimeSlot>,
   ) {}
 
   async seedAdmin() {
@@ -178,21 +169,21 @@ export class AuthService implements OnModuleInit {
     });
 
     // Fetch all FrontEnd Counseling Booked Slots
-    const bookedFrontEndSlots = await this.frontEndTimeSlotRepository.find({
-      where: { user: { id: userId }, booked: true },
-      relations: ['frontEndCounselingTimes'],
-    });
-
-    // Fetch all legal Counseling Booked Slots
-    const bookedLegalSlots = await this.legalTimesSlotRepository.find({
-      where: { user: { id: userId }, booked: true },
-      relations: ['legalCounselingTimes'],
-    });
-
-    const bookedPsychologySlots = await this.psychologyTimeslotRepository.find({
-      where: { user: { id: userId }, booked: true },
-      relations: ['psychologyCounselingTimes'],
-    });
+    // const bookedFrontEndSlots = await this.frontEndTimeSlotRepository.find({
+    //   where: { user: { id: userId }, booked: true },
+    //   relations: ['frontEndCounselingTimes'],
+    // });
+    //
+    // // Fetch all legal Counseling Booked Slots
+    // const bookedLegalSlots = await this.legalTimesSlotRepository.find({
+    //   where: { user: { id: userId }, booked: true },
+    //   relations: ['legalCounselingTimes'],
+    // });
+    //
+    // const bookedPsychologySlots = await this.psychologyTimeslotRepository.find({
+    //   where: { user: { id: userId }, booked: true },
+    //   relations: ['psychologyCounselingTimes'],
+    // });
 
     // Transform General Counseling Data
     const generalData = bookedGeneralSlots.map((slot) => ({
@@ -204,35 +195,36 @@ export class AuthService implements OnModuleInit {
     }));
 
     // Transform FrontEnd Counseling Data
-    const frontEndData = bookedFrontEndSlots.map((slot) => ({
-      id: slot.id,
-      category: 'frontend', // Indicate it's from FrontEnd Counseling
-      clock: slot.clock,
-      day: slot.frontEndCounselingTimes?.day,
-      date: slot.frontEndCounselingTimes?.date,
-    }));
-
-    // Transform legal Counseling Data
-    const legalData = bookedLegalSlots.map((slot) => ({
-      id: slot.id,
-      category: 'legal', // Indicate it's from FrontEnd Counseling
-      clock: slot.clock,
-      day: slot.legalCounselingTimes?.day,
-      date: slot.legalCounselingTimes?.date,
-    }));
-
-    // Transform legal Counseling Data
-    const psychologyData = bookedPsychologySlots.map((slot) => ({
-      id: slot.id,
-      category: 'psychology', // Indicate it's from FrontEnd Counseling
-      clock: slot.clock,
-      day: slot.psychologyCounselingTimes?.day,
-      date: slot.psychologyCounselingTimes?.date,
-    }));
+    // const frontEndData = bookedFrontEndSlots.map((slot) => ({
+    //   id: slot.id,
+    //   category: 'frontend', // Indicate it's from FrontEnd Counseling
+    //   clock: slot.clock,
+    //   day: slot.frontEndCounselingTimes?.day,
+    //   date: slot.frontEndCounselingTimes?.date,
+    // }));
+    //
+    // // Transform legal Counseling Data
+    // const legalData = bookedLegalSlots.map((slot) => ({
+    //   id: slot.id,
+    //   category: 'legal', // Indicate it's from FrontEnd Counseling
+    //   clock: slot.clock,
+    //   day: slot.legalCounselingTimes?.day,
+    //   date: slot.legalCounselingTimes?.date,
+    // }));
+    //
+    // // Transform legal Counseling Data
+    // const psychologyData = bookedPsychologySlots.map((slot) => ({
+    //   id: slot.id,
+    //   category: 'psychology', // Indicate it's from FrontEnd Counseling
+    //   clock: slot.clock,
+    //   day: slot.psychologyCounselingTimes?.day,
+    //   date: slot.psychologyCounselingTimes?.date,
+    // }));
 
     // Combine both lists and return
     return {
-      data: [...generalData, ...frontEndData, ...legalData, ...psychologyData],
+      // data: [...generalData, ...frontEndData, ...legalData, ...psychologyData],
+      dat: [...generalData],
     };
   }
 

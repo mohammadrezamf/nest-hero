@@ -4,35 +4,40 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { LegalCounselingTimes, LegalTimeSlot } from './legal-counseling-entity';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
+import {
+  MentorTwoCounselingTimes,
+  MentorTwoTimeSlot,
+} from './mentor-two-counseling-entity';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { v4 as uuidv4 } from 'uuid';
 import { UpdateActiveDto } from '../general-counseling-times/dto/updateActiveDto';
 import { User } from '../auth/user.entity';
 import { UserRole } from '../auth/dto/auth-credential.dto';
 import { UpdateBookedDto } from '../general-counseling-times/dto/updateBookedDto';
+import { ResendService } from '../resend/resend.service';
 
 @Injectable()
-export class LegalCounselingService {
-  private readonly logger = new Logger(LegalCounselingService.name);
+export class MentorTwoCounselingService {
+  private readonly logger = new Logger(MentorTwoCounselingService.name);
 
   constructor(
-    @InjectRepository(LegalCounselingTimes)
-    private legalCounselingTimesRepository: Repository<LegalCounselingTimes>,
-    @InjectRepository(LegalTimeSlot)
-    private legalTimeSlotRepository: Repository<LegalTimeSlot>,
+    @InjectRepository(MentorTwoCounselingTimes)
+    private mentorTwoCounselingTimesRepository: Repository<MentorTwoCounselingTimes>,
+    @InjectRepository(MentorTwoTimeSlot)
+    private mentorTwoTimeSlotRepository: Repository<MentorTwoTimeSlot>,
+
+    private readonly resendService: ResendService,
   ) {}
 
-  // CRON JOB: Run every hour
-  @Cron(CronExpression.EVERY_HOUR) // Runs every hour
+  @Cron(CronExpression.EVERY_HOUR)
   async handleCron() {
     this.logger.log('Executing the scheduled task: createWeekdaysAndTimeSlots');
     await this.createWeekdaysAndTimeSlots();
   }
 
-  // ----------------- CREATE DAYS AND SLOT ----------------------
+  //   --------------- CREATE DAYS AND SLOT ---------------------
   async createWeekdaysAndTimeSlots() {
     const daysOfWeek = [
       'saturday',
@@ -43,23 +48,14 @@ export class LegalCounselingService {
       'thursday',
       'friday',
     ];
-    const hours = [
-      '09:00',
-      '10:00',
-      '11:00',
-      '12:00',
-      '13:00',
-      '14:00',
-      '15:00',
-    ];
+    const hours = ['17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
 
     const today = new Date();
-
     const twoWeeksLater = new Date();
     twoWeeksLater.setDate(today.getDate() + 14); // Set the range for two weeks
 
     // Fetch all existing dates within the two-week range
-    const existingDays = await this.legalCounselingTimesRepository.find({
+    const existingDays = await this.mentorTwoCounselingTimesRepository.find({
       where: {
         date: Between(
           today.toISOString().split('T')[0],
@@ -86,23 +82,25 @@ export class LegalCounselingService {
 
       if (!existingDatesSet.has(formattedDate)) {
         // If the date is missing, create it
-        const legalCounselingTime = new LegalCounselingTimes();
-        legalCounselingTime.id = uuidv4();
-        legalCounselingTime.day = dayOfWeek;
-        legalCounselingTime.date = formattedDate;
+        const mentorTwoCounselingTime = new MentorTwoCounselingTimes();
+        mentorTwoCounselingTime.id = uuidv4();
+        mentorTwoCounselingTime.day = dayOfWeek;
+        mentorTwoCounselingTime.date = formattedDate;
 
-        await this.legalCounselingTimesRepository.save(legalCounselingTime);
+        await this.mentorTwoCounselingTimesRepository.save(
+          mentorTwoCounselingTime,
+        );
 
         for (const hour of hours) {
-          const timeSlot = new LegalTimeSlot();
+          const timeSlot = new MentorTwoTimeSlot();
 
           timeSlot.id = uuidv4();
           timeSlot.clock = hour;
           timeSlot.booked = false;
           timeSlot.active = false;
-          timeSlot.legalCounselingTimes = legalCounselingTime;
+          timeSlot.mentorTwoCounselingTimes = mentorTwoCounselingTime;
 
-          await this.legalTimeSlotRepository.save(timeSlot);
+          await this.mentorTwoTimeSlotRepository.save(timeSlot);
         }
 
         // Add newly created date to the Set to prevent further duplicates
@@ -122,8 +120,8 @@ export class LegalCounselingService {
     nextWeek.setDate(today.getDate() + 6); // Fetch for the next 7 days
 
     const [data, total] =
-      await this.legalCounselingTimesRepository.findAndCount({
-        relations: ['legalTimeSlots'], // ✅ Ensure time slots are included
+      await this.mentorTwoCounselingTimesRepository.findAndCount({
+        relations: ['mentorTwoTimeSlots', 'mentorTwoTimeSlots.user'], // ✅ Ensure time slots are included
       });
     const filteredData = data.filter((item) => {
       const itemDate = new Date(item.date);
@@ -133,11 +131,12 @@ export class LegalCounselingService {
     filteredData.sort((a, b) => {
       return new Date(a.date).getTime() - new Date(b.date).getTime();
     });
+
     const responseData = filteredData.map((item) => ({
       id: item.id,
       day: item.day,
       date: item.date,
-      legalTimeSlots: item.legalTimeSlots.map((slot) => ({
+      mentorTwoTimeSlots: item.mentorTwoTimeSlots.map((slot) => ({
         id: slot.id,
         active: slot.active,
         booked: slot.booked,
@@ -164,8 +163,8 @@ export class LegalCounselingService {
   // ------------------------ DELETE ----------------------------------------
 
   async deleteAllDaysWithTimeSlots() {
-    await this.legalTimeSlotRepository.delete({});
-    await this.legalCounselingTimesRepository.delete({});
+    await this.mentorTwoTimeSlotRepository.delete({});
+    await this.mentorTwoCounselingTimesRepository.delete({});
 
     return {
       message: 'All days and time slots have been deleted successfully!',
@@ -176,9 +175,9 @@ export class LegalCounselingService {
   async getSlotTimeWithDayAndUser(slotTimeId: string) {
     try {
       // Query the CounselingTimeSlot with relations
-      const slotTime = await this.legalTimeSlotRepository.findOne({
+      const slotTime = await this.mentorTwoTimeSlotRepository.findOne({
         where: { id: slotTimeId },
-        relations: ['legalCounselingTimes', 'user'],
+        relations: ['mentorTwoCounselingTimes', 'user'],
       });
 
       // Throw an error if the slotTime is not found
@@ -201,10 +200,10 @@ export class LegalCounselingService {
               role: slotTime.user.role,
             }
           : null,
-        legalCounselingTimes: {
-          id: slotTime.legalCounselingTimes.id,
-          day: slotTime.legalCounselingTimes.day,
-          date: slotTime.legalCounselingTimes.date,
+        mentorTwoCounselingTimes: {
+          id: slotTime.mentorTwoCounselingTimes.id,
+          day: slotTime.mentorTwoCounselingTimes.day,
+          date: slotTime.mentorTwoCounselingTimes.date,
         },
       };
     } catch (error) {
@@ -222,7 +221,7 @@ export class LegalCounselingService {
       }
 
       // Find the specific time slot by its ID
-      const timeSlot = await this.legalTimeSlotRepository.findOne({
+      const timeSlot = await this.mentorTwoTimeSlotRepository.findOne({
         where: { id: updateActiveDto.timeSlotID },
       });
 
@@ -237,7 +236,7 @@ export class LegalCounselingService {
       timeSlot.user = user;
 
       // Save the updated time slot to the database
-      await this.legalTimeSlotRepository.save(timeSlot);
+      await this.mentorTwoTimeSlotRepository.save(timeSlot);
 
       return {
         message: `Active status for time slot with ID ${updateActiveDto.timeSlotID} updated successfully.`,
@@ -251,14 +250,14 @@ export class LegalCounselingService {
   //   ------------------- UPD0ATE BOOKED ---------------------------------------
   async updateBooked(updateBookedDto: UpdateBookedDto, user: User) {
     try {
-      if (user.role === UserRole.LEGAL) {
+      if (user.role === UserRole.MENTOR_ONE) {
         return new BadRequestException(
           `You do not have permission to perform this action`,
         );
       }
 
       // Find the specific time slot by its ID
-      const timeSlot = await this.legalTimeSlotRepository.findOne({
+      const timeSlot = await this.mentorTwoTimeSlotRepository.findOne({
         where: { id: updateBookedDto.timeSlotID },
       });
 
@@ -273,7 +272,14 @@ export class LegalCounselingService {
       timeSlot.user = user;
 
       // Save the updated time slot to the database
-      await this.legalTimeSlotRepository.save(timeSlot);
+      await this.mentorTwoTimeSlotRepository.save(timeSlot);
+      if (timeSlot.creatorEmail) {
+        await this.resendService.sendEmail(
+          timeSlot.creatorEmail,
+          `name od customer:${user.displayName} phone number ${user.phoneNumber}`,
+          `<strong>The time slot has been updated.</strong>`,
+        );
+      }
 
       return {
         message: `Booking status for time slot with ID ${updateBookedDto.timeSlotID} updated successfully.`,

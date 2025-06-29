@@ -8,37 +8,39 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { PsychologyCounselingService } from './psychology-counseling.service';
+import { MentorThreeCounselingService } from './mentor-three-counseling.service';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateBookedDto } from '../general-counseling-times/dto/updateBookedDto';
 import { GetUser } from '../auth/get-user.decorator';
 import { User } from '../auth/user.entity';
 import { UpdateActiveDto } from '../general-counseling-times/dto/updateActiveDto';
 
-@Controller('psychology-counseling')
-export class PsychologyCounselingController {
+@Controller('mentor-three')
+export class MentorThreeCounselingController {
   constructor(
-    private psychologyCounselingService: PsychologyCounselingService,
+    private mentorThreeCounselingService: MentorThreeCounselingService,
   ) {}
 
   @Post('/create-day')
   async createWeekdaysAndTimeSlots() {
-    return await this.psychologyCounselingService.createWeekdaysAndTimeSlots();
+    return await this.mentorThreeCounselingService.createWeekdaysAndTimeSlots();
   }
 
   @Get('one-week')
   async getAllDaysWithTimeSlots() {
-    return this.psychologyCounselingService.getWeekWithTimeSlots();
+    return this.mentorThreeCounselingService.getWeekWithTimeSlots();
   }
 
   @Delete('delete-days')
   async deleteAllDaysWithTimeSlots() {
-    return await this.psychologyCounselingService.deleteAllDaysWithTimeSlots();
+    return await this.mentorThreeCounselingService.deleteAllDaysWithTimeSlots();
   }
 
   @Get(':slotTimeId/slot-time')
   async getSlotTimeWithDayAndUser(@Param('slotTimeId') id: string) {
-    return await this.psychologyCounselingService.getSlotTimeWithDayAndUser(id);
+    return await this.mentorThreeCounselingService.getSlotTimeWithDayAndUser(
+      id,
+    );
   }
 
   // ------------ update -booked--------
@@ -48,7 +50,10 @@ export class PsychologyCounselingController {
     @Body() updateBookedDto: UpdateBookedDto,
     @GetUser() user: User,
   ) {
-    return this.psychologyCounselingService.updateBooked(updateBookedDto, user);
+    return this.mentorThreeCounselingService.updateBooked(
+      updateBookedDto,
+      user,
+    );
   }
 
   // --------------- update--- active ---------
@@ -58,7 +63,7 @@ export class PsychologyCounselingController {
     @Body() updateActiveDto: UpdateActiveDto,
     @GetUser() user: User,
   ) {
-    return this.psychologyCounselingService.updateActiveStatus(
+    return this.mentorThreeCounselingService.updateActiveStatus(
       updateActiveDto,
       user,
     );

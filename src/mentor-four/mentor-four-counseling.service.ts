@@ -4,29 +4,30 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
-import { ResendService } from '../resend/resend.service';
+import {
+  MentorFourCounselingTimes,
+  MentorFourTimeSlot,
+} from './mentor-four-counseling-entity';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { v4 as uuidv4 } from 'uuid';
 import { UpdateActiveDto } from '../general-counseling-times/dto/updateActiveDto';
 import { User } from '../auth/user.entity';
 import { UserRole } from '../auth/dto/auth-credential.dto';
 import { UpdateBookedDto } from '../general-counseling-times/dto/updateBookedDto';
-import {
-  SecurityCounselingTimes,
-  SecurityTimeSlot,
-} from './security-counseling.entity';
+import { ResendService } from '../resend/resend.service';
 
 @Injectable()
-export class SecurityCounselingService {
-  private readonly logger = new Logger(SecurityCounselingService.name);
+export class MentorFourCounselingService {
+  private readonly logger = new Logger(MentorFourCounselingService.name);
 
   constructor(
-    @InjectRepository(SecurityCounselingTimes)
-    private securityCounselingTimesRepository: Repository<SecurityCounselingTimes>,
-    @InjectRepository(SecurityTimeSlot)
-    private securityTimeSlotRepository: Repository<SecurityTimeSlot>,
+    @InjectRepository(MentorFourCounselingTimes)
+    private mentorFourCounselingTimesRepository: Repository<MentorFourCounselingTimes>,
+    @InjectRepository(MentorFourTimeSlot)
+    private mentorFourTimeSlotRepository: Repository<MentorFourTimeSlot>,
+
     private readonly resendService: ResendService,
   ) {}
 
@@ -54,7 +55,7 @@ export class SecurityCounselingService {
     twoWeeksLater.setDate(today.getDate() + 14); // Set the range for two weeks
 
     // Fetch all existing dates within the two-week range
-    const existingDays = await this.securityCounselingTimesRepository.find({
+    const existingDays = await this.mentorFourCounselingTimesRepository.find({
       where: {
         date: Between(
           today.toISOString().split('T')[0],
@@ -81,25 +82,25 @@ export class SecurityCounselingService {
 
       if (!existingDatesSet.has(formattedDate)) {
         // If the date is missing, create it
-        const securityCounselingTime = new SecurityCounselingTimes();
-        securityCounselingTime.id = uuidv4();
-        securityCounselingTime.day = dayOfWeek;
-        securityCounselingTime.date = formattedDate;
+        const mentorFourCounselingTime = new MentorFourCounselingTimes();
+        mentorFourCounselingTime.id = uuidv4();
+        mentorFourCounselingTime.day = dayOfWeek;
+        mentorFourCounselingTime.date = formattedDate;
 
-        await this.securityCounselingTimesRepository.save(
-          securityCounselingTime,
+        await this.mentorFourCounselingTimesRepository.save(
+          mentorFourCounselingTime,
         );
 
         for (const hour of hours) {
-          const timeSlot = new SecurityTimeSlot();
+          const timeSlot = new MentorFourTimeSlot();
 
           timeSlot.id = uuidv4();
           timeSlot.clock = hour;
           timeSlot.booked = false;
           timeSlot.active = false;
-          timeSlot.securityCounselingTimes = securityCounselingTime;
+          timeSlot.mentorFourCounselingTimes = mentorFourCounselingTime;
 
-          await this.securityTimeSlotRepository.save(timeSlot);
+          await this.mentorFourTimeSlotRepository.save(timeSlot);
         }
 
         // Add newly created date to the Set to prevent further duplicates
@@ -119,8 +120,8 @@ export class SecurityCounselingService {
     nextWeek.setDate(today.getDate() + 6); // Fetch for the next 7 days
 
     const [data, total] =
-      await this.securityCounselingTimesRepository.findAndCount({
-        relations: ['securityTimeSlots', 'securityTimeSlots.user'], // ✅ Ensure time slots are included
+      await this.mentorFourCounselingTimesRepository.findAndCount({
+        relations: ['mentorFourTimeSlots', 'mentorFourTimeSlots.user'], // ✅ Ensure time slots are included
       });
     const filteredData = data.filter((item) => {
       const itemDate = new Date(item.date);
@@ -135,7 +136,7 @@ export class SecurityCounselingService {
       id: item.id,
       day: item.day,
       date: item.date,
-      securityTimeSlots: item.securityTimeSlots.map((slot) => ({
+      mentorFourTimeSlots: item.mentorFourTimeSlots.map((slot) => ({
         id: slot.id,
         active: slot.active,
         booked: slot.booked,
@@ -162,8 +163,8 @@ export class SecurityCounselingService {
   // ------------------------ DELETE ----------------------------------------
 
   async deleteAllDaysWithTimeSlots() {
-    await this.securityTimeSlotRepository.delete({});
-    await this.securityCounselingTimesRepository.delete({});
+    await this.mentorFourTimeSlotRepository.delete({});
+    await this.mentorFourCounselingTimesRepository.delete({});
 
     return {
       message: 'All days and time slots have been deleted successfully!',
@@ -174,9 +175,9 @@ export class SecurityCounselingService {
   async getSlotTimeWithDayAndUser(slotTimeId: string) {
     try {
       // Query the CounselingTimeSlot with relations
-      const slotTime = await this.securityTimeSlotRepository.findOne({
+      const slotTime = await this.mentorFourTimeSlotRepository.findOne({
         where: { id: slotTimeId },
-        relations: ['securityCounselingTimes', 'user'],
+        relations: ['mentorFourCounselingTimes', 'user'],
       });
 
       // Throw an error if the slotTime is not found
@@ -199,10 +200,10 @@ export class SecurityCounselingService {
               role: slotTime.user.role,
             }
           : null,
-        securityCounselingTimes: {
-          id: slotTime.securityCounselingTimes.id,
-          day: slotTime.securityCounselingTimes.day,
-          date: slotTime.securityCounselingTimes.date,
+        mentorFourCounselingTimes: {
+          id: slotTime.mentorFourCounselingTimes.id,
+          day: slotTime.mentorFourCounselingTimes.day,
+          date: slotTime.mentorFourCounselingTimes.date,
         },
       };
     } catch (error) {
@@ -220,7 +221,7 @@ export class SecurityCounselingService {
       }
 
       // Find the specific time slot by its ID
-      const timeSlot = await this.securityTimeSlotRepository.findOne({
+      const timeSlot = await this.mentorFourTimeSlotRepository.findOne({
         where: { id: updateActiveDto.timeSlotID },
       });
 
@@ -235,7 +236,7 @@ export class SecurityCounselingService {
       timeSlot.user = user;
 
       // Save the updated time slot to the database
-      await this.securityTimeSlotRepository.save(timeSlot);
+      await this.mentorFourTimeSlotRepository.save(timeSlot);
 
       return {
         message: `Active status for time slot with ID ${updateActiveDto.timeSlotID} updated successfully.`,
@@ -249,14 +250,14 @@ export class SecurityCounselingService {
   //   ------------------- UPD0ATE BOOKED ---------------------------------------
   async updateBooked(updateBookedDto: UpdateBookedDto, user: User) {
     try {
-      if (user.role === UserRole.SECURITY) {
+      if (user.role === UserRole.MENTOR_ONE) {
         return new BadRequestException(
           `You do not have permission to perform this action`,
         );
       }
 
       // Find the specific time slot by its ID
-      const timeSlot = await this.securityTimeSlotRepository.findOne({
+      const timeSlot = await this.mentorFourTimeSlotRepository.findOne({
         where: { id: updateBookedDto.timeSlotID },
       });
 
@@ -271,7 +272,7 @@ export class SecurityCounselingService {
       timeSlot.user = user;
 
       // Save the updated time slot to the database
-      await this.securityTimeSlotRepository.save(timeSlot);
+      await this.mentorFourTimeSlotRepository.save(timeSlot);
       if (timeSlot.creatorEmail) {
         await this.resendService.sendEmail(
           timeSlot.creatorEmail,

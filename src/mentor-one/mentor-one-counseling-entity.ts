@@ -2,7 +2,7 @@ import { Column, Entity, ManyToOne, OneToMany, PrimaryColumn } from 'typeorm';
 import { User } from '../auth/user.entity';
 
 @Entity()
-export class FrontEndCounselingTimes {
+export class MentorOneCounselingTimes {
   @PrimaryColumn()
   id: string;
 
@@ -12,15 +12,15 @@ export class FrontEndCounselingTimes {
   @Column({ type: 'date', nullable: false })
   date: string;
 
-  @OneToMany(() => FrontEndTimeSlot, (slot) => slot.frontEndCounselingTimes, {
+  @OneToMany(() => MentorOneTimeSlot, (slot) => slot.mentorOneCounselingTimes, {
     eager: true,
     cascade: true,
   })
-  frontTimeSlots: FrontEndTimeSlot[];
+  mentorOneTimeSlots: MentorOneTimeSlot[];
 }
 
 @Entity()
-export class FrontEndTimeSlot {
+export class MentorOneTimeSlot {
   @PrimaryColumn()
   id: string;
 
@@ -42,15 +42,19 @@ export class FrontEndTimeSlot {
   @Column({ nullable: true })
   creatorPhoneNumber: string;
 
-  @ManyToOne(() => User, (user) => user.frontEndTimeSlots, {
+  @ManyToOne(() => User, (user) => user.mentorOneTimeSlots, {
     eager: false,
     nullable: true,
   })
   user: User;
 
-  @ManyToOne(() => FrontEndCounselingTimes, (item) => item.frontTimeSlots, {
-    eager: false,
-    nullable: true,
-  })
-  frontEndCounselingTimes: FrontEndCounselingTimes;
+  @ManyToOne(
+    () => MentorOneCounselingTimes,
+    (item) => item.mentorOneTimeSlots,
+    {
+      eager: false,
+      nullable: true,
+    },
+  )
+  mentorOneCounselingTimes: MentorOneCounselingTimes;
 }
