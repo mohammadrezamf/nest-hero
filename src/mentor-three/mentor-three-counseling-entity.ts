@@ -1,4 +1,11 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryColumn,
+} from 'typeorm';
 import { User } from '../auth/user.entity';
 
 @Entity()
@@ -50,6 +57,7 @@ export class MentorThreeTimeSlot {
     eager: false,
     nullable: true,
   })
+  @JoinColumn()
   user: User;
 
   @ManyToOne(

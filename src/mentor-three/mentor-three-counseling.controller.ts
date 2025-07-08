@@ -14,6 +14,7 @@ import { UpdateBookedDto } from '../general-counseling-times/dto/updateBookedDto
 import { GetUser } from '../auth/get-user.decorator';
 import { User } from '../auth/user.entity';
 import { UpdateActiveDto } from '../general-counseling-times/dto/updateActiveDto';
+import { UpdateBookedByUserDto } from '../dto/updateBookedByMentorDto';
 
 @Controller('mentor-three')
 export class MentorThreeCounselingController {
@@ -66,6 +67,19 @@ export class MentorThreeCounselingController {
     return this.mentorThreeCounselingService.updateActiveStatus(
       updateActiveDto,
       user,
+    );
+  }
+
+  @Patch('update-by-mentor')
+  @UseGuards(AuthGuard('jwt'))
+  async updateByMentor(
+    @Body() customerPayload: UpdateBookedByUserDto,
+    @GetUser() user: User,
+  ) {
+    const { role } = user;
+    return this.mentorThreeCounselingService.bookedByMentor(
+      role,
+      customerPayload,
     );
   }
 }

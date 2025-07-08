@@ -8,7 +8,7 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { UpdateUser, UserRole } from './dto/auth-credential.dto';
+import { CreateUserDto, UpdateUser, UserRole } from './dto/auth-credential.dto';
 import { AuthService } from './auth.service';
 import { User } from './user.entity';
 import { AuthGuard } from '@nestjs/passport';
@@ -70,5 +70,12 @@ export class AuthController {
     console.log('user data :', user);
     const { id } = user;
     return this.authService.getUserAllCounselingBookings(id);
+  }
+
+  @Post('create-user')
+  @UseGuards(AuthGuard('jwt'))
+  async createUser(@GetUser() user: User, @Body('data') data: CreateUserDto) {
+    const { role } = user;
+    return this.authService.createUser(role, data);
   }
 }

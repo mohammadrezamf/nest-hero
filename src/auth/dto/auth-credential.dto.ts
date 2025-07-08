@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class AuthCredentialDto {
   @IsString()
@@ -30,3 +30,14 @@ export type UpdateUser = {
   displayName: string;
   email: string;
 };
+
+export class CreateUserDto {
+  @IsNotEmpty()
+  phoneNumber: string;
+
+  @IsOptional()
+  displayName: string;
+
+  @IsString()
+  email: string;
+}

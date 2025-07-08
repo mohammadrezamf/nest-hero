@@ -19,6 +19,6 @@ import { CounselingTimeSlot } from '../general-counseling-times/general.counseli
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
-  exports: [JwtStrategy, PassportModule],
+  exports: [JwtStrategy, PassportModule, AuthService],
 })
 export class AuthModule {}

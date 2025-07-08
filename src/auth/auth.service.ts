@@ -7,7 +7,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UpdateUser, UserRole } from './dto/auth-credential.dto';
+import { CreateUserDto, UpdateUser, UserRole } from './dto/auth-credential.dto';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -235,6 +235,11 @@ export class AuthService implements OnModuleInit {
     };
   }
 
+  async getUserInformationByPhoneNumber(phoneNumber: string) {
+    const user = await this.usersRepository.findOne({ where: { phoneNumber } });
+    return { data: user };
+  }
+
   async updateUserData(userId: string, data: UpdateUser) {
     const { email, displayName } = data;
     const user = await this.usersRepository.findOne({ where: { id: userId } });
@@ -247,5 +252,25 @@ export class AuthService implements OnModuleInit {
     return {
       message: 'User updated successfully',
     };
+  }
+
+  async createUser(role: UserRole, data: CreateUserDto) {
+    if (role === UserRole.USER) {
+      throw new ForbiddenException(`you don't have access to create user`);
+    }
+    const { phoneNumber, email, displayName } = data;
+    const userExists = await this.usersRepository.findOne({
+      where: { phoneNumber },
+    });
+    if (userExists) {
+      throw new ForbiddenException('User already exists');
+    }
+    const user = this.usersRepository.create({
+      phoneNumber,
+      email,
+      displayName,
+    });
+    await this.usersRepository.save(user);
+    return { data: user };
   }
 }

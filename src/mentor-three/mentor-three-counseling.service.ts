@@ -17,6 +17,8 @@ import { User } from '../auth/user.entity';
 import { UserRole } from '../auth/dto/auth-credential.dto';
 import { UpdateBookedDto } from '../general-counseling-times/dto/updateBookedDto';
 import { ResendService } from '../resend/resend.service';
+import { UpdateBookedByUserDto } from '../dto/updateBookedByMentorDto';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class MentorThreeCounselingService {
@@ -27,7 +29,7 @@ export class MentorThreeCounselingService {
     private mentorThreeCounselingTimesRepository: Repository<MentorThreeCounselingTimes>,
     @InjectRepository(MentorThreeTimeSlot)
     private mentorThreeTimeSlotRepository: Repository<MentorThreeTimeSlot>,
-
+    private readonly authService: AuthService,
     private readonly resendService: ResendService,
   ) {}
 
@@ -283,6 +285,60 @@ export class MentorThreeCounselingService {
 
       return {
         message: `Booking status for time slot with ID ${updateBookedDto.timeSlotID} updated successfully.`,
+        updatedTimeSlot: timeSlot,
+      };
+    } catch (error) {
+      throw new Error(`Failed to update booking: ${error.message}`);
+    }
+  }
+
+  async bookedByMentor(
+    mentorRole: UserRole,
+    customerPayload: UpdateBookedByUserDto,
+  ) {
+    try {
+      if (mentorRole === UserRole.USER) {
+        return new BadRequestException(
+          `You do not have permission to perform this action`,
+        );
+      }
+
+      // Find the specific time slot by its ID
+      const timeSlot = await this.mentorThreeTimeSlotRepository.findOne({
+        where: { id: customerPayload.timeSlotID },
+      });
+
+      if (!timeSlot) {
+        return {
+          message: `Time slot with ID ${customerPayload.timeSlotID} was not found.`,
+        };
+      }
+
+      // Update the booking status
+      timeSlot.booked = customerPayload.booked;
+      const customerInfo = await this.authService.createUser(mentorRole, {
+        displayName: customerPayload.displayName,
+        email: customerPayload.email,
+        phoneNumber: customerPayload.phoneNumber,
+      });
+      if (!customerInfo) {
+        throw new NotFoundException(`customer info didn't create.`);
+      }
+
+      console.log('customerinfo after created', customerInfo.data);
+      timeSlot.user = customerInfo.data;
+      await this.mentorThreeTimeSlotRepository.save(timeSlot);
+
+      if (timeSlot.creatorEmail) {
+        await this.resendService.sendEmail(
+          timeSlot.creatorEmail,
+          `name od customer:${customerInfo.data.displayName} phone number ${customerInfo.data.phoneNumber}`,
+          `<strong>The time slot has been updated.</strong>`,
+        );
+      }
+
+      return {
+        message: `Booking status for time slot with ID ${customerPayload.timeSlotID} updated successfully.`,
         updatedTimeSlot: timeSlot,
       };
     } catch (error) {
