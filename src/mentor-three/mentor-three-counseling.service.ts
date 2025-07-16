@@ -316,16 +316,22 @@ export class MentorThreeCounselingService {
 
       // Update the booking status
       timeSlot.booked = customerPayload.booked;
-      const customerInfo = await this.authService.createUser(mentorRole, {
-        displayName: customerPayload.displayName,
-        email: customerPayload.email,
-        phoneNumber: customerPayload.phoneNumber,
-      });
-      if (!customerInfo) {
-        throw new NotFoundException(`customer info didn't create.`);
+
+      let isNewUser = false;
+
+      let customerInfo = await this.authService.getUserInformationByPhoneNumber(
+        customerPayload.phoneNumber,
+      );
+
+      if (!customerInfo.data) {
+        customerInfo = await this.authService.createUser(mentorRole, {
+          displayName: customerPayload.displayName,
+          email: customerPayload.email,
+          phoneNumber: customerPayload.phoneNumber,
+        });
+        isNewUser = true;
       }
 
-      console.log('customerinfo after created', customerInfo.data);
       timeSlot.user = customerInfo.data;
       await this.mentorThreeTimeSlotRepository.save(timeSlot);
 
@@ -338,7 +344,9 @@ export class MentorThreeCounselingService {
       }
 
       return {
-        message: `Booking status for time slot with ID ${customerPayload.timeSlotID} updated successfully.`,
+        message: isNewUser
+          ? `کاربر جدید با موفقیت ایجاد شد و زمان انتخاب‌شده برای او رزرو شد.`
+          : `کاربر قبلاً ثبت‌نام کرده بود و زمان موردنظر برای او رزرو شد.`,
         updatedTimeSlot: timeSlot,
       };
     } catch (error) {

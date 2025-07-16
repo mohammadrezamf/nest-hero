@@ -16,6 +16,7 @@ import { ResendModule } from './resend/resend.module';
 import { MentorTwoCounselingModule } from './mentor-two/mentor-two-counseling.module';
 import { MentorThreeCounselingModule } from './mentor-three/mentor-three-counseling.module';
 import { MentorFourCounselingModule } from './mentor-four/mentor-four-counseling.module';
+import { WorkshopModule } from './workshop/workshop.module';
 
 dotenv.config();
 
@@ -47,6 +48,7 @@ dotenv.config();
       autoLoadEntities: true,
       synchronize: true,
     }),
+    WorkshopModule,
   ],
 })
 export class AppModule {}

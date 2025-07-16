@@ -1,4 +1,10 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToMany,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Task } from '../tasks/task.entity';
 import { CounselingTimeSlot } from '../general-counseling-times/general.counseling.times.entity';
 import { UserRole } from './dto/auth-credential.dto';
@@ -7,6 +13,7 @@ import { FileEntity } from '../file/file.entity';
 import { MentorTwoTimeSlot } from '../mentor-two/mentor-two-counseling-entity';
 import { MentorThreeTimeSlot } from '../mentor-three/mentor-three-counseling-entity';
 import { MentorFourTimeSlot } from '../mentor-four/mentor-four-counseling-entity';
+import { Workshop } from '../workshop/workshop.entity';
 
 @Entity()
 export class User {
@@ -71,4 +78,7 @@ export class User {
 
   @OneToMany(() => FileEntity, (file) => file.user)
   files: FileEntity[];
+
+  @ManyToMany(() => Workshop, (workshop) => workshop.users)
+  workshops: Workshop[];
 }
