@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MentorThreeCounselingService } from './mentor-three-counseling.service';
 import { MentorThreeCounselingController } from './mentor-three-counseling.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -13,9 +13,10 @@ import { ResendModule } from '../resend/resend.module';
   imports: [
     TypeOrmModule.forFeature([MentorThreeCounselingTimes, MentorThreeTimeSlot]),
     ResendModule,
-    AuthModule,
+    forwardRef(() => AuthModule),
   ],
   providers: [MentorThreeCounselingService],
   controllers: [MentorThreeCounselingController],
+  exports: [MentorThreeCounselingService],
 })
 export class MentorThreeCounselingModule {}

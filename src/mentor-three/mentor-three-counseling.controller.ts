@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { MentorThreeCounselingService } from './mentor-three-counseling.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -25,6 +26,11 @@ export class MentorThreeCounselingController {
   @Post('/create-day')
   async createWeekdaysAndTimeSlots() {
     return await this.mentorThreeCounselingService.createWeekdaysAndTimeSlots();
+  }
+
+  @Get()
+  getAllSlots(@Query('page') page = 1, @Query('limit') limit = 100) {
+    return this.mentorThreeCounselingService.getAllSlots(+page, +limit);
   }
 
   @Get('one-week')

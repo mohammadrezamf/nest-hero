@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -29,8 +31,11 @@ export class MentorThreeCounselingService {
     private mentorThreeCounselingTimesRepository: Repository<MentorThreeCounselingTimes>,
     @InjectRepository(MentorThreeTimeSlot)
     private mentorThreeTimeSlotRepository: Repository<MentorThreeTimeSlot>,
-    private readonly authService: AuthService,
+
     private readonly resendService: ResendService,
+
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService,
   ) {}
 
   @Cron(CronExpression.EVERY_HOUR)
@@ -159,6 +164,29 @@ export class MentorThreeCounselingService {
       total,
       weekDaysTotal: filteredData.length,
       data: responseData,
+    };
+  }
+
+  async getAllSlots(page: number, limit: number) {
+    const [data, total] =
+      await this.mentorThreeCounselingTimesRepository.findAndCount({
+        relations: ['mentorThreeTimeSlots'],
+        skip: (page - 1) * limit,
+        take: limit,
+        order: {
+          id: 'ASC', // Optional: sort by id or startTime
+        },
+      });
+
+    return {
+      message: 'Slots fetched successfully!',
+      data,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
     };
   }
 
@@ -352,5 +380,12 @@ export class MentorThreeCounselingService {
     } catch (error) {
       throw new Error(`Failed to update booking: ${error.message}`);
     }
+  }
+
+  async getSlotByUserID(userId: string) {
+    return await this.mentorThreeTimeSlotRepository.find({
+      where: { user: { id: userId }, booked: true },
+      relations: ['mentorThreeCounselingTimes'],
+    });
   }
 }

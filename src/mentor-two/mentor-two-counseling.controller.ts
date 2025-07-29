@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { MentorTwoCounselingService } from './mentor-two-counseling.service';
@@ -14,6 +15,7 @@ import { UpdateBookedDto } from '../general-counseling-times/dto/updateBookedDto
 import { GetUser } from '../auth/get-user.decorator';
 import { User } from '../auth/user.entity';
 import { UpdateActiveDto } from '../general-counseling-times/dto/updateActiveDto';
+import { UpdateBookedByUserDto } from '../dto/updateBookedByMentorDto';
 
 @Controller('mentor-two')
 export class MentorTwoCounselingController {
@@ -22,6 +24,11 @@ export class MentorTwoCounselingController {
   @Post('/create-day')
   async createWeekdaysAndTimeSlots() {
     return await this.mentorTwoCounselingService.createWeekdaysAndTimeSlots();
+  }
+
+  @Get()
+  getAllSlots(@Query('page') page = 1, @Query('limit') limit = 100) {
+    return this.mentorTwoCounselingService.getAllSlots(+page, +limit);
   }
 
   @Get('one-week')
@@ -59,6 +66,19 @@ export class MentorTwoCounselingController {
     return this.mentorTwoCounselingService.updateActiveStatus(
       updateActiveDto,
       user,
+    );
+  }
+
+  @Patch('update-by-mentor')
+  @UseGuards(AuthGuard('jwt'))
+  async updateByMentor(
+    @Body() customerPayload: UpdateBookedByUserDto,
+    @GetUser() user: User,
+  ) {
+    const { role } = user;
+    return this.mentorTwoCounselingService.bookedByMentor(
+      role,
+      customerPayload,
     );
   }
 }

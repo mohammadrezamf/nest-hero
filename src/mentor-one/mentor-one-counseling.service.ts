@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -17,6 +19,8 @@ import { User } from '../auth/user.entity';
 import { UserRole } from '../auth/dto/auth-credential.dto';
 import { UpdateBookedDto } from '../general-counseling-times/dto/updateBookedDto';
 import { ResendService } from '../resend/resend.service';
+import { UpdateBookedByUserDto } from '../dto/updateBookedByMentorDto';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class MentorOneCounselingService {
@@ -29,6 +33,9 @@ export class MentorOneCounselingService {
     private mentorOneTimeSlotRepository: Repository<MentorOneTimeSlot>,
 
     private readonly resendService: ResendService,
+
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService,
   ) {}
 
   @Cron(CronExpression.EVERY_HOUR)
@@ -160,6 +167,29 @@ export class MentorOneCounselingService {
     };
   }
 
+  async getAllSlots(page: number, limit: number) {
+    const [data, total] =
+      await this.mentorOneCounselingTimesRepository.findAndCount({
+        relations: ['mentorOneTimeSlots'],
+        skip: (page - 1) * limit,
+        take: limit,
+        order: {
+          id: 'ASC', // Optional: sort by id or startTime
+        },
+      });
+
+    return {
+      message: 'Slots fetched successfully!',
+      data,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
   // ------------------------ DELETE ----------------------------------------
 
   async deleteAllDaysWithTimeSlots() {
@@ -288,5 +318,74 @@ export class MentorOneCounselingService {
     } catch (error) {
       throw new Error(`Failed to update booking: ${error.message}`);
     }
+  }
+
+  async bookedByMentor(
+    mentorRole: UserRole,
+    customerPayload: UpdateBookedByUserDto,
+  ) {
+    try {
+      if (mentorRole === UserRole.USER) {
+        return new BadRequestException(
+          `You do not have permission to perform this action`,
+        );
+      }
+
+      // Find the specific time slot by its ID
+      const timeSlot = await this.mentorOneTimeSlotRepository.findOne({
+        where: { id: customerPayload.timeSlotID },
+      });
+
+      if (!timeSlot) {
+        return {
+          message: `Time slot with ID ${customerPayload.timeSlotID} was not found.`,
+        };
+      }
+
+      // Update the booking status
+      timeSlot.booked = customerPayload.booked;
+
+      let isNewUser = false;
+
+      let customerInfo = await this.authService.getUserInformationByPhoneNumber(
+        customerPayload.phoneNumber,
+      );
+
+      if (!customerInfo.data) {
+        customerInfo = await this.authService.createUser(mentorRole, {
+          displayName: customerPayload.displayName,
+          email: customerPayload.email,
+          phoneNumber: customerPayload.phoneNumber,
+        });
+        isNewUser = true;
+      }
+
+      timeSlot.user = customerInfo.data;
+      await this.mentorOneTimeSlotRepository.save(timeSlot);
+
+      if (timeSlot.creatorEmail) {
+        await this.resendService.sendEmail(
+          timeSlot.creatorEmail,
+          `name od customer:${customerInfo.data.displayName} phone number ${customerInfo.data.phoneNumber}`,
+          `<strong>The time slot has been updated.</strong>`,
+        );
+      }
+
+      return {
+        message: isNewUser
+          ? `کاربر جدید با موفقیت ایجاد شد و زمان انتخاب‌شده برای او رزرو شد.`
+          : `کاربر قبلاً ثبت‌نام کرده بود و زمان موردنظر برای او رزرو شد.`,
+        updatedTimeSlot: timeSlot,
+      };
+    } catch (error) {
+      throw new Error(`Failed to update booking: ${error.message}`);
+    }
+  }
+
+  async getSlotByUserID(userId: string) {
+    return await this.mentorOneTimeSlotRepository.find({
+      where: { user: { id: userId }, booked: true },
+      relations: ['mentorOneCounselingTimes'],
+    });
   }
 }
